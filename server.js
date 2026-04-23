@@ -23,21 +23,32 @@ app.use(cookieSession({
   secure: process.env.VERCEL ? true : false,
 }));
 
-// ---------- flash + theme ----------
+// ---------- flash + theme + lore ----------
 // cookie-session session object is `null` until first write, so guard writes.
 app.use((req, res, next) => {
   res.locals.flash = (req.session && req.session.flash) || null;
   if (req.session) req.session.flash = null;
-  res.locals.theme = (req.session && req.session.theme) || 'mafia';
+  const theme = (req.session && req.session.theme) || 'mafia';
+  const lore  = (req.session && req.session.lore)  || 'mafia';
+  res.locals.theme = theme;
+  res.locals.lore = lore;
+  // Helper: display name for a city, honoring the active lore pack.
+  res.locals.cityName = (cityDef) =>
+    (data.LORE[lore] && data.LORE[lore].city_names && data.LORE[lore].city_names[cityDef.id])
+    || cityDef.name;
+  res.locals.loreTagline = (data.LORE[lore] && data.LORE[lore].brand_tagline) || '';
   next();
 });
 
-// Toggle or set theme. Body renders `body.theme-<name>`.
-app.post('/theme/:name', (req, res) => {
-  const name = req.params.name === 'cyber' ? 'cyber' : 'mafia';
+// Set theme or lore; accepts {mafia, cyber} for either.
+app.post('/prefs/:key/:value', (req, res) => {
+  const { key, value } = req.params;
+  if (!['theme', 'lore'].includes(key)) return res.redirect('/account');
+  const allowed = ['mafia', 'cyber'];
+  if (!allowed.includes(value)) return res.redirect('/account');
   if (!req.session) req.session = {};
-  req.session.theme = name;
-  res.redirect(req.get('Referer') || '/');
+  req.session[key] = value;
+  res.redirect(req.get('Referer') || '/account');
 });
 function flash(req, text, kind = 'info') {
   if (!req.session) req.session = {};
@@ -303,6 +314,11 @@ app.post('/mob/fire/:slot', loadChar, (req, res) => {
     flash(req, 'Fired mobster', 'info');
   } catch (e) { flash(req, e.message, 'err'); }
   res.redirect('/mob');
+});
+
+// --- account (user settings: theme, lore, claim)
+app.get('/account', loadChar, (req, res) => {
+  res.render('account', { lorePacks: data.LORE });
 });
 
 // --- achievements

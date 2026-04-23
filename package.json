@@ -11,7 +11,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "seed": "node seed.js"
+    "seed": "node seed.js",
+    "test": "node tests/run.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

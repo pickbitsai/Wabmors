@@ -7,3 +7,7 @@ node_modules/
 .claude/
 server.log
 server.pid
+test.db*
+playwright-report/
+test-results/
+screenshots/

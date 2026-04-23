@@ -1,0 +1,63 @@
+<%- include('partials/head', { title: 'Account' }) %>
+<%- include('partials/hud') %>
+<main>
+  <h1>Account</h1>
+
+  <section class="card">
+    <h2>Appearance</h2>
+    <div class="account-option">
+      <div class="label">
+        <strong>Theme</strong>
+        <span>Visual skin. Cyberpunk uses a pure-black neon palette with monospace type; mafia is the classic warm wood + gold.</span>
+      </div>
+      <div class="control">
+        <form method="post" action="/prefs/theme/mafia" class="choice" style="display:inline-block">
+          <button class="<%= theme === 'mafia' ? 'active' : '' %>">Mafia</button>
+        </form>
+        <form method="post" action="/prefs/theme/cyber" class="choice" style="display:inline-block">
+          <button class="<%= theme === 'cyber' ? 'active' : '' %>">Cyberpunk</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="account-option">
+      <div class="label">
+        <strong>Lore pack</strong>
+        <span>Swaps flavor strings (city names, taglines, guest nicknames). Independent of theme — you can mix and match.</span>
+      </div>
+      <div class="control">
+        <% for (const [key, pack] of Object.entries(lorePacks)) { %>
+          <form method="post" action="/prefs/lore/<%= key %>" class="choice" style="display:inline-block">
+            <button class="<%= lore === key ? 'active' : '' %>" title="<%= pack.description %>"><%= pack.label %></button>
+          </form>
+        <% } %>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Account</h2>
+    <% if (isGuest) { %>
+      <div class="account-option">
+        <div class="label">
+          <strong>Guest account</strong>
+          <span>Your character (<%= char.name %>) only exists on this browser. Claim it to set a username and password and log in from anywhere.</span>
+        </div>
+        <div class="control">
+          <a href="/claim"><button>Claim this character</button></a>
+        </div>
+      </div>
+    <% } else { %>
+      <div class="account-option">
+        <div class="label">
+          <strong>Claimed</strong>
+          <span>You can log in as <%= char.name %> from any browser via <a href="/login">/login</a>.</span>
+        </div>
+        <div class="control">
+          <form method="post" action="/logout"><button>Logout</button></form>
+        </div>
+      </div>
+    <% } %>
+  </section>
+</main>
+<%- include('partials/foot') %>

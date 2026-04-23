@@ -1,7 +1,7 @@
 <%- include('partials/head', { title: 'Login' }) %>
 <main class="auth">
   <h1>WOBMORS</h1>
-  <p class="tag">a 2000s-style mafia grinder</p>
+  <p class="tag"><%= loreTagline || 'a 2000s-style mafia grinder' %></p>
   <form method="post" action="/login">
     <label>Username<input name="username" required autocomplete="username"></label>
     <label>Password<input name="password" type="password" required autocomplete="current-password"></label>

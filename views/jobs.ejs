@@ -1,4 +1,4 @@
-<%- include('partials/head', { title: 'Jobs — ' + currentCity.name }) %>
+<%- include('partials/head', { title: 'Jobs — ' + cityName(currentCity) }) %>
 <%- include('partials/hud') %>
 <main>
   <h1>Jobs</h1>
@@ -9,7 +9,7 @@
       <% const isCurrent = ci.id === currentCity.id; %>
       <% const mastered = earnedPassives.find(p => p.id === ci.id); %>
       <a href="/jobs?city=<%= ci.id %>" class="city-tab <%= isCurrent ? 'active' : '' %> <%= locked ? 'locked' : '' %>">
-        <%= ci.name %>
+        <%= cityName(ci) %>
         <% if (locked) { %><span class="muted">· lvl <%= ci.unlock_level %>+</span><% } %>
         <% if (mastered) { %><span class="mastered">★ mastered</span><% } %>
       </a>
@@ -17,7 +17,7 @@
   </nav>
 
   <section class="card">
-    <p><strong><%= currentCity.name %></strong> —
+    <p><strong><%= cityName(currentCity) %></strong> —
       <span class="muted">master every tier-5 job (<%= masteryThreshold %>+ completions each) to earn:</span>
       <strong><%= currentCity.passive.description %></strong>
     </p>
@@ -25,7 +25,7 @@
       <p class="good">★ You've mastered this city. Passive active.</p>
     <% } %>
     <% if (char.level < currentCity.unlock_level) { %>
-      <p class="err">Locked — reach level <%= currentCity.unlock_level %> to work in <%= currentCity.name %>.</p>
+      <p class="err">Locked — reach level <%= currentCity.unlock_level %> to work in <%= cityName(currentCity) %>.</p>
     <% } %>
   </section>
 

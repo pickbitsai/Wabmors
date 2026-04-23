@@ -203,6 +203,38 @@ const ACHIEVEMENTS = [
   { id: 'millionaire',      name: 'Made a Million',    desc: 'Hold $1,000,000',                    rule: c => c.cash >= 1000000,   reward: { favor_points: 3 } },
 ];
 
+// ---------- LORE PACKS ----------
+// Independent from the visual theme: a user can run cyber-theme + mafia-lore
+// or mafia-theme + cyber-lore. The lore layer is display-only — every
+// underlying id (e.g. city.id = 'nyc') stays stable so game logic doesn't care.
+const LORE = {
+  mafia: {
+    label: 'Mafia',
+    description: 'Classic 2000s Cosa Nostra — wiseguys, New York, Chicago, Vegas.',
+    brand_tagline: 'a 2000s-style mafia grinder',
+    city_names: {
+      // id → display name (leave undefined to keep the default in data)
+    },
+    // Left as empty overrides — default gangster pool from GUEST_NOUNS is used
+    guest_nouns: null,
+  },
+  cyber: {
+    label: 'Neon / Silent Guardian',
+    description: 'Rain-soaked megacity, operating in OVERSOUL\'s blind spots. Districts are wired. Crews are factions.',
+    brand_tagline: 'running the grid in OVERSOUL\'s blind spots',
+    city_names: {
+      nyc:     'The Veins',
+      chicago: 'The Rust',
+      vegas:   'The Gloss',
+    },
+    guest_nouns: [
+      'Kaye', 'Ironside', 'Westfall', 'Mercy', 'Old Seven', 'Wire',
+      'Cascade', 'Gloss', 'Rust', 'Vein', 'Hollow', 'Pyre', 'Spire',
+      'Reclaim', 'Sable', 'Cipher', 'Echo', 'Null', 'Render', 'Signal',
+    ],
+  },
+};
+
 // ---------- GUEST NAME POOL ----------
 // Random gangster nickname assembled on first visit. Used so the default
 // character has a personality without a name-entry screen.
@@ -262,4 +294,5 @@ module.exports = {
   NPC_NAMES, REGEN, SKILL_COST, SKILL_POINTS_PER_LEVEL,
   INCOME_CAP_HOURS, xpForLevel, MOB, HIRED_GUN_NAMES,
   AMBUSH, ACHIEVEMENTS, GUEST_ADJECTIVES, GUEST_NOUNS,
+  LORE,
 };

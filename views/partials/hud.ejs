@@ -1,12 +1,16 @@
 <% if (typeof char !== 'undefined' && char) {
   const curXp = xpForLevel(char.level);
   const nextXp = xpForLevel(char.level + 1);
-  const xpPct = Math.max(0, Math.min(100, ((char.xp - curXp) / Math.max(1, nextXp - curXp)) * 100));
 %>
 <header class="hud">
   <div class="brand"><a href="/hub">WOBMORS</a></div>
   <div class="vitals">
-    <span class="pill name"><%= char.name %></span>
+    <span class="pill name">
+      <%= char.name %>
+      <% if (typeof isGuest !== 'undefined' && isGuest) { %>
+        <a href="/claim" class="claim-inline" title="Set a username + password so you can log in from another device">Claim</a>
+      <% } %>
+    </span>
     <span class="pill lvl">LVL <%= char.level %></span>
     <span class="pill">$<%= char.cash.toLocaleString() %></span>
     <span class="pill fp">◆ <%= char.favor_points %> FP</span>
@@ -28,14 +32,8 @@
   <a href="/workshop">Workshop</a>
   <a href="/shop">Shop</a>
   <a href="/chat">Chat</a>
-  <% if (typeof isGuest !== 'undefined' && isGuest) { %>
-    <a href="/claim" class="claim-link" title="Set a username + password so you can log in elsewhere">Claim</a>
-  <% } %>
-  <form action="/theme/<%= (typeof theme !== 'undefined' && theme === 'cyber') ? 'mafia' : 'cyber' %>" method="post" class="theme-switch">
-    <button title="Toggle between mafia and cyberpunk skin">
-      <%= (typeof theme !== 'undefined' && theme === 'cyber') ? '◐ mafia' : '◑ cyber' %>
-    </button>
-  </form>
+  <a href="/account">Account</a>
+  <span class="spacer"></span>
   <form action="/logout" method="post" class="logout"><button>Logout</button></form>
 </nav>
 <% if (flash) { %><div class="flash <%= flash.kind %>"><%= flash.text %></div><% } %>

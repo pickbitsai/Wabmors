@@ -1,92 +1,140 @@
+/* ============================================================
+   WobMors stylesheet
+   Two themes, one set of variables. Switching themes swaps vars.
+   ============================================================ */
+
 :root {
-  /* Mafia theme (default) — warm wood, old gold, blood red */
+  /* ---- Mafia (default) ---- */
   --bg: #0e0b08;
   --ink: #e8dfcc;
   --muted: #8a7f6b;
-  --accent: #c7a24a;
-  --accent2: #8e1111;
+  --accent: #c7a24a;          /* old gold */
+  --accent2: #8e1111;          /* blood red */
   --card: #1a140e;
   --edge: #2a2218;
   --good: #4caf50;
   --err: #e34e4e;
+  --good-soft: #bce1a8;
+  --err-soft:  #f0a0a0;
 
+  /* Surface colors — every non-trivial background routes through these */
+  --hud-bg: linear-gradient(180deg, #1f1711 0%, #100a06 100%);
+  --hud-border: 2px solid var(--accent2);
+  --nav-bg: #100a06;
+  --input-bg: #0a0806;
+
+  --button-bg: var(--accent2);
+  --button-text: var(--ink);
+  --button-border: #4e0a0a;
+  --button-hover-bg: #a81414;
+
+  --flash-good-bg: #1c2b18;
+  --flash-err-bg:  #2b1818;
+  --flash-info-bg: #1a1712;
+
+  --action-log-bg: #120c08;
+  --achievement-bg: var(--bg);
+
+  /* Typography + style tokens */
   --font-body: Georgia, 'Times New Roman', serif;
   --font-head: Georgia, 'Times New Roman', serif;
   --font-mono: 'Consolas', 'Courier New', monospace;
-  --head-transform: none;
+  --font-brand: 'Impact', 'Arial Black', sans-serif;
   --head-variant: small-caps;
   --accent-glow: none;
   --brand-glow: 2px 2px 0 #000, 0 0 8px rgba(199, 162, 74, 0.3);
   --border-radius: 3px;
+  --button-radius: 2px;
 }
 
-/* Cyberpunk theme — pure-black, neon quartet, monospace + glow (ThandGreft aesthetic) */
+/* ---- Cyberpunk theme ---- */
 body.theme-cyber {
   --bg: #000;
   --ink: #e0e0ff;
   --muted: #4b5563;
-  --accent: #00ffff;       /* cyan */
-  --accent2: #ff00ff;      /* magenta */
+  --accent: #00ffff;           /* cyan */
+  --accent2: #ff00ff;          /* magenta */
   --card: #0a0a14;
   --edge: #1a1a2e;
   --good: #00ff66;
   --err: #ff0055;
+  --good-soft: #5cffa0;
+  --err-soft: #ff8faa;
+
+  --hud-bg: linear-gradient(180deg, #0a0a1a 0%, #000 100%);
+  --hud-border: 2px solid var(--accent2);
+  --nav-bg: #000;
+  --input-bg: #0a0a14;
+
+  --button-bg: transparent;
+  --button-text: var(--accent);
+  --button-border: var(--accent);
+  --button-hover-bg: var(--accent);
+
+  --flash-good-bg: #001a10;
+  --flash-err-bg:  #1a0008;
+  --flash-info-bg: #0a0a14;
+
+  --action-log-bg: #05050a;
+  --achievement-bg: #05050a;
 
   --font-body: 'Consolas', 'Courier New', monospace;
   --font-head: 'Consolas', 'Courier New', monospace;
-  --font-mono: 'Consolas', 'Courier New', monospace;
-  --head-transform: uppercase;
+  --font-brand: 'Consolas', 'Courier New', monospace;
   --head-variant: normal;
   --accent-glow: 0 0 8px currentColor;
-  --brand-glow: 0 0 12px #00ffff, 0 0 2px #00ffff;
+  --brand-glow: 0 0 12px currentColor, 0 0 2px currentColor;
   --border-radius: 0;
+  --button-radius: 0;
 }
 
+/* Cyber extras: glow where it counts */
 body.theme-cyber h1,
 body.theme-cyber h2,
-body.theme-cyber h3 {
-  text-shadow: var(--accent-glow);
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
+body.theme-cyber h3,
+body.theme-cyber .tier,
+body.theme-cyber .job-name,
+body.theme-cyber .city-tab.active,
+body.theme-cyber .recipe-head .result,
+body.theme-cyber .achievement.earned .a-name,
+body.theme-cyber .action-log h3 { text-shadow: var(--accent-glow); }
+body.theme-cyber h1, body.theme-cyber h2, body.theme-cyber h3 {
+  letter-spacing: 0.15em; text-transform: uppercase;
 }
+body.theme-cyber button:hover:not(:disabled) { color: #000; text-shadow: none; }
 body.theme-cyber .pill.lvl { background: var(--accent); color: #000; text-shadow: none; }
 body.theme-cyber .pill.fp  { color: var(--accent2); border-color: var(--accent2); }
-body.theme-cyber .hud { border-bottom: 2px solid var(--accent2); background: linear-gradient(180deg, #0a0a1a 0%, #000 100%); }
-body.theme-cyber button, body.theme-cyber input[type=submit] {
-  background: transparent; color: var(--accent); border: 1px solid var(--accent);
-  text-transform: uppercase; letter-spacing: 0.1em; text-shadow: 0 0 4px var(--accent);
-}
-body.theme-cyber button:hover:not(:disabled) { background: var(--accent); color: #000; text-shadow: none; }
 body.theme-cyber .navbar a { color: var(--muted); }
 body.theme-cyber .navbar a:hover { color: var(--accent); text-shadow: 0 0 6px var(--accent); background: transparent; }
-body.theme-cyber .brand a { color: var(--accent); letter-spacing: 0.3em; }
-body.theme-cyber .job-name, body.theme-cyber .achievement.earned .a-name,
-body.theme-cyber .recipe-head h3, body.theme-cyber .action-log h3 {
-  text-shadow: 0 0 6px var(--accent);
-}
-body.theme-cyber .flash.good { background: #002010; color: #5cffa0; border-left: 3px solid var(--good); }
-body.theme-cyber .flash.err  { background: #200005; color: #ff8faa; border-left: 3px solid var(--err); }
-body.theme-cyber .flash.info { background: #0a0a14; color: var(--ink); border-left: 3px solid var(--accent); }
-body.theme-cyber .city-tab.active { text-shadow: 0 0 6px var(--accent); }
-body.theme-cyber .action-log li.good .text { color: var(--good); text-shadow: 0 0 4px var(--good); }
+body.theme-cyber .brand a { letter-spacing: 0.3em; }
+
+/* ============================================================
+   Base
+   ============================================================ */
 * { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
-  font-family: var(--font-body); }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); }
+body { min-height: 100vh; }
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 main { max-width: 1100px; margin: 0 auto; padding: 1em; }
-h1 { font-family: var(--font-head); font-variant: var(--head-variant); letter-spacing: 0.08em; color: var(--accent); border-bottom: 1px solid var(--edge); padding-bottom: 0.3em; }
+
+h1 { font-family: var(--font-head); font-variant: var(--head-variant); letter-spacing: 0.08em; color: var(--accent); border-bottom: 1px solid var(--edge); padding-bottom: 0.3em; margin-top: 0.4em; }
 h2 { font-family: var(--font-head); font-variant: var(--head-variant); letter-spacing: 0.05em; color: var(--accent); margin-top: 0; }
 h3 { font-family: var(--font-head); color: var(--accent); margin-bottom: 0.3em; }
+
 .muted { color: var(--muted); font-size: 0.9em; }
 .err   { color: var(--err); }
+.good  { color: var(--good-soft); }
 
-/* HUD */
+/* ============================================================
+   HUD
+   ============================================================ */
 .hud {
   display: flex; justify-content: space-between; align-items: center;
-  background: linear-gradient(180deg, #1f1711 0%, #100a06 100%);
-  border-bottom: 2px solid var(--accent2);
+  background: var(--hud-bg);
+  border-bottom: var(--hud-border);
   padding: 0.6em 1em;
+  gap: 0.8em;
 }
 .brand a {
   color: var(--accent);
@@ -94,170 +142,212 @@ h3 { font-family: var(--font-head); color: var(--accent); margin-bottom: 0.3em; 
   letter-spacing: 0.2em;
   font-size: 1.4em;
   font-weight: bold;
-  font-family: 'Impact', 'Arial Black', sans-serif;
+  font-family: var(--font-brand);
   text-shadow: var(--brand-glow);
 }
-.vitals { display: flex; gap: 0.4em; flex-wrap: wrap; }
-.pill { background: var(--card); border: 1px solid var(--edge); padding: 0.2em 0.6em; border-radius: 3px; font-size: 0.9em; }
-.pill.name { color: var(--accent); font-weight: bold; }
-.pill.lvl { background: var(--accent); color: #000; font-weight: bold; }
+.vitals { display: flex; gap: 0.4em; flex-wrap: wrap; justify-content: flex-end; }
+.pill {
+  background: var(--card); border: 1px solid var(--edge);
+  padding: 0.2em 0.6em; border-radius: var(--border-radius); font-size: 0.9em;
+  white-space: nowrap;
+}
+.pill.name { color: var(--accent); font-weight: bold; display: inline-flex; align-items: center; gap: 0.5em; }
+.pill .claim-inline {
+  font-size: 0.75em; padding: 0.1em 0.5em; border: 1px solid var(--accent);
+  color: var(--accent); border-radius: var(--border-radius); font-weight: normal;
+  letter-spacing: 0.05em;
+}
+.pill .claim-inline:hover { background: var(--accent); color: var(--bg); text-decoration: none; }
+.pill.lvl { background: var(--accent); color: var(--bg); font-weight: bold; }
 .pill.fp  { border-color: var(--accent); color: var(--accent); }
 .pill.hp  { border-color: #6a2a2a; }
 .pill.en  { border-color: #2a4a6a; }
 .pill.st  { border-color: #6a4a2a; }
 
-/* Nav */
+/* ============================================================
+   Nav
+   ============================================================ */
 .navbar {
-  display: flex; gap: 0.2em; align-items: center;
-  background: #100a06; padding: 0.3em 1em;
+  display: flex; align-items: center;
+  background: var(--nav-bg);
   border-bottom: 1px solid var(--edge);
+  overflow-x: auto;  /* scrollable on narrow screens */
+  -webkit-overflow-scrolling: touch;
 }
+.navbar a, .navbar form { flex-shrink: 0; }
 .navbar a {
-  padding: 0.5em 1em; color: var(--ink);
+  padding: 0.6em 1em; color: var(--ink);
   border-right: 1px solid var(--edge);
   font-variant: var(--head-variant); letter-spacing: 0.08em;
+  display: inline-flex; align-items: center;
 }
 .navbar a:hover { background: var(--card); color: var(--accent); text-decoration: none; }
-.navbar .claim-link { margin-left: auto; color: var(--accent); border: 1px solid var(--accent); padding: 0.2em 0.8em; }
-.navbar .claim-link:hover { background: var(--accent); color: #000; text-decoration: none; }
-.navbar .theme-switch { margin-left: 0.2em; }
-.navbar .theme-switch button {
-  background: transparent; border: 1px solid var(--edge); color: var(--muted);
-  padding: 0.3em 0.8em; cursor: pointer; font: inherit;
-  font-variant: var(--head-variant); letter-spacing: 0.05em;
-}
-.navbar .theme-switch button:hover { color: var(--accent); border-color: var(--accent); }
-.navbar .logout { margin-left: 0.2em; }
+.navbar .spacer { flex: 1 0 auto; }  /* push logout to the right */
+.navbar form { margin: 0; }
 .navbar .logout button {
   background: transparent; border: 1px solid var(--edge); color: var(--muted);
-  padding: 0.3em 0.8em; cursor: pointer; font: inherit;
+  padding: 0.4em 0.9em; cursor: pointer; font: inherit;
+  margin: 0.2em 0.5em;
 }
 .navbar .logout button:hover { color: var(--err); border-color: var(--err); }
 
-/* Flash */
+/* ============================================================
+   Flash
+   ============================================================ */
 .flash {
   padding: 0.6em 1em; margin: 0;
   border-bottom: 1px solid var(--edge);
-  font-family: monospace;
+  font-family: var(--font-mono);
+  font-size: 0.92em;
 }
-.flash.good { background: #1c2b18; color: #bce1a8; }
-.flash.err  { background: #2b1818; color: #f0a0a0; }
-.flash.info { background: #1a1712; color: var(--ink); }
+.flash.good { background: var(--flash-good-bg); color: var(--good-soft); }
+.flash.err  { background: var(--flash-err-bg);  color: var(--err-soft);  }
+.flash.info { background: var(--flash-info-bg); color: var(--ink);       }
+body.theme-cyber .flash { border-left: 3px solid transparent; }
+body.theme-cyber .flash.good { border-left-color: var(--good); }
+body.theme-cyber .flash.err  { border-left-color: var(--err);  }
+body.theme-cyber .flash.info { border-left-color: var(--accent); }
 
-/* Cards + grids */
+/* ============================================================
+   Cards + generic layout helpers
+   ============================================================ */
 .card {
-  background: var(--card);
-  border: 1px solid var(--edge);
-  padding: 1em 1.2em;
-  margin-bottom: 1em;
-  border-radius: 3px;
+  background: var(--card); border: 1px solid var(--edge);
+  padding: 1em 1.2em; margin-bottom: 1em;
+  border-radius: var(--border-radius);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 .grid.two { display: grid; grid-template-columns: 1fr 1fr; gap: 1em; }
-@media (max-width: 720px) { .grid.two { grid-template-columns: 1fr; } }
-.row { display: flex; gap: 0.5em; align-items: center; }
+.row { display: flex; gap: 0.5em; align-items: center; flex-wrap: wrap; }
 
-/* Buttons + inputs */
+/* ============================================================
+   Buttons + inputs
+   ============================================================ */
 button, input[type=submit] {
-  background: var(--accent2); color: var(--ink);
-  border: 1px solid #4e0a0a;
+  background: var(--button-bg);
+  color: var(--button-text);
+  border: 1px solid var(--button-border);
   padding: 0.4em 1em; cursor: pointer;
   font-family: inherit; font-size: 0.95em;
-  border-radius: 2px;
-  transition: background 0.1s;
+  border-radius: var(--button-radius);
+  transition: background 0.1s, color 0.1s;
+  min-height: 2.2em;
 }
-button:hover:not(:disabled), input[type=submit]:hover:not(:disabled) { background: #a81414; }
+body.theme-cyber button, body.theme-cyber input[type=submit] {
+  text-transform: uppercase; letter-spacing: 0.1em; text-shadow: 0 0 4px var(--accent);
+}
+button:hover:not(:disabled), input[type=submit]:hover:not(:disabled) { background: var(--button-hover-bg); }
 button:disabled { opacity: 0.4; cursor: not-allowed; }
 input[type=text], input[type=number], input[type=password], input[name] {
-  background: #0a0806; color: var(--ink);
+  background: var(--input-bg); color: var(--ink);
   border: 1px solid var(--edge);
-  padding: 0.4em 0.6em;
+  padding: 0.5em 0.6em;
   font-family: inherit; font-size: 0.95em;
+  border-radius: var(--border-radius);
+  min-height: 2.2em;
 }
 
-/* Auth */
-.auth { max-width: 400px; margin: 3em auto; text-align: center; }
-.auth h1 { font-size: 2.4em; letter-spacing: 0.15em; text-shadow: 2px 2px 0 #000; }
+/* ============================================================
+   Auth (login / claim / etc.)
+   ============================================================ */
+.auth { max-width: 420px; margin: 3em auto; padding: 0 1em; text-align: center; }
+.auth h1 { font-size: 2.4em; letter-spacing: 0.15em; text-shadow: 2px 2px 0 #000; border: none; }
 .auth .tag { color: var(--muted); margin-top: -0.5em; margin-bottom: 2em; font-style: italic; }
 .auth form { display: flex; flex-direction: column; gap: 0.8em; }
 .auth label { display: flex; flex-direction: column; text-align: left; gap: 0.3em; color: var(--muted); }
 .auth button { margin-top: 0.5em; padding: 0.8em; font-size: 1.05em; }
+.auth .alt { margin-top: 1.2em; }
 
-/* Tables */
+/* ============================================================
+   Tables
+   ============================================================ */
 .itemlist, .stats { width: 100%; border-collapse: collapse; }
 .itemlist th, .itemlist td, .stats th, .stats td { padding: 0.4em 0.6em; border-bottom: 1px solid var(--edge); text-align: left; }
 .itemlist th, .stats th { color: var(--accent); font-variant: var(--head-variant); letter-spacing: 0.05em; font-weight: normal; }
 .itemlist tr.locked { opacity: 0.4; }
-
-/* Stats table */
 .stats td:last-child { text-align: right; }
 
-/* Key-value */
+/* ============================================================
+   Key-value list
+   ============================================================ */
 .kv { list-style: none; padding: 0; margin: 0; }
-.kv li { display: flex; justify-content: space-between; padding: 0.3em 0; border-bottom: 1px solid var(--edge); }
+.kv li { display: flex; justify-content: space-between; padding: 0.3em 0; border-bottom: 1px solid var(--edge); gap: 0.8em; }
 .kv li:last-child { border-bottom: none; }
 
-/* City tabs */
-.city-tabs {
-  display: flex; gap: 0.3em; margin: 0.8em 0 1em;
-  border-bottom: 2px solid var(--edge);
-}
+/* ============================================================
+   City tabs
+   ============================================================ */
+.city-tabs { display: flex; gap: 0.3em; margin: 0.8em 0 1em; border-bottom: 2px solid var(--edge); overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .city-tab {
   padding: 0.5em 1em; background: var(--card); border: 1px solid var(--edge); border-bottom: none;
-  border-radius: 3px 3px 0 0;
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
   color: var(--muted); font-variant: var(--head-variant); letter-spacing: 0.08em;
+  white-space: nowrap;
 }
 .city-tab:hover { color: var(--ink); text-decoration: none; }
 .city-tab.active { color: var(--accent); border-color: var(--accent); border-bottom: 2px solid var(--bg); margin-bottom: -2px; }
 .city-tab.locked { opacity: 0.5; }
 .city-tab .mastered { color: var(--accent); font-size: 0.85em; margin-left: 0.3em; }
 
-/* Jobs */
+/* ============================================================
+   Jobs
+   ============================================================ */
 .tier { margin-top: 1.5em; color: var(--accent); font-variant: var(--head-variant); letter-spacing: 0.1em; border-bottom: 1px solid var(--edge); padding-bottom: 0.2em; }
 .job {
-  display: flex; justify-content: space-between; align-items: center;
+  display: flex; justify-content: space-between; align-items: center; gap: 1em;
   background: var(--card); border: 1px solid var(--edge); padding: 0.7em 1em;
-  margin-bottom: 0.4em; border-radius: 2px;
+  margin-bottom: 0.4em; border-radius: var(--border-radius);
 }
 .job.locked { opacity: 0.4; }
+.job-info { min-width: 0; flex: 1; }
 .job-name { font-weight: bold; color: var(--accent); }
 .job-payout { font-size: 0.85em; color: var(--muted); margin-top: 0.2em; }
 .job-mastery { font-size: 0.8em; color: var(--muted); }
 
-/* Loadout */
+/* ============================================================
+   Loadout
+   ============================================================ */
 .loadout { list-style: none; padding: 0; }
 .loadout li { padding: 0.3em 0; border-bottom: 1px dashed var(--edge); }
 
-/* Achievements */
-.achievements-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15em, 1fr)); gap: 0.6em; }
+/* ============================================================
+   Achievements
+   ============================================================ */
+.achievements-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(14em, 1fr)); gap: 0.6em; }
 .achievement {
-  background: var(--bg); border: 1px solid var(--edge); padding: 0.7em 0.9em; border-radius: 2px;
+  background: var(--achievement-bg); border: 1px solid var(--edge);
+  padding: 0.7em 0.9em; border-radius: var(--border-radius);
   opacity: 0.5;
 }
 .achievement.earned { opacity: 1; border-color: var(--accent); }
 .achievement .a-name { color: var(--accent); font-weight: bold; }
-.achievement.earned .a-name { color: var(--accent); }
 .achievement .a-desc { font-size: 0.85em; color: var(--muted); margin: 0.2em 0; }
-.achievement .a-reward { font-size: 0.75em; color: #bce1a8; font-family: monospace; }
+.achievement .a-reward { font-size: 0.75em; color: var(--good-soft); font-family: var(--font-mono); }
 
-/* Workshop */
+/* ============================================================
+   Workshop
+   ============================================================ */
 .recipe { padding: 0.8em 1em; }
 .recipe-head h3 { margin: 0; }
 .recipe-head .result { color: var(--accent); }
 .recipe-inputs { list-style: none; padding: 0; margin: 0.4em 0 0.8em; }
-.recipe-inputs li { padding: 0.2em 0; font-family: monospace; font-size: 0.9em; }
-.recipe-inputs li.ok { color: #bce1a8; }
-.recipe-inputs li.missing { color: #f0a0a0; }
+.recipe-inputs li { padding: 0.2em 0; font-family: var(--font-mono); font-size: 0.9em; }
+.recipe-inputs li.ok { color: var(--good-soft); }
+.recipe-inputs li.missing { color: var(--err-soft); }
 .recipe-inputs .owned { color: var(--muted); margin-left: 0.5em; }
 .recipe.cannot { opacity: 0.7; }
 
-/* Action log */
+/* ============================================================
+   Action log (sidebar on wide, inline on narrow)
+   ============================================================ */
 .action-log {
-  position: fixed; right: 1em; top: 7em; width: 22em; max-height: 70vh;
+  position: fixed; right: 1em; top: 7.5em; width: 22em; max-height: 70vh;
   overflow-y: auto;
-  background: #120c08; border: 1px solid var(--edge); border-radius: 3px;
-  padding: 0.6em 0.8em; font-family: monospace; font-size: 0.82em;
+  background: var(--action-log-bg); border: 1px solid var(--edge);
+  border-radius: var(--border-radius);
+  padding: 0.6em 0.8em; font-family: var(--font-mono); font-size: 0.82em;
   box-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
+  z-index: 10;
 }
 .action-log h3 { color: var(--accent); margin: 0 0 0.4em 0; font-size: 0.95em; }
 .action-log ul { list-style: none; padding: 0; margin: 0; }
@@ -265,14 +355,85 @@ input[type=text], input[type=number], input[type=password], input[name] {
 .action-log li:last-child { border-bottom: none; }
 .action-log .time { color: var(--muted); margin-right: 0.6em; }
 .action-log .text { color: var(--ink); }
-.action-log li.good .text { color: #bce1a8; }
-.action-log li:not(.good):not(.kind-collect):not(.kind-job) .text { color: #f0a0a0; }
-@media (max-width: 1100px) {
-  .action-log { position: static; width: auto; max-width: 1100px; margin: 0 auto 1em; }
-}
+.action-log li.good .text { color: var(--good-soft); }
+.action-log li:not(.good):not(.kind-collect):not(.kind-job) .text { color: var(--err-soft); }
 
-/* Chat */
-.chatlog { max-height: 60vh; overflow-y: auto; font-family: monospace; }
+/* ============================================================
+   Chat
+   ============================================================ */
+.chatlog { max-height: 60vh; overflow-y: auto; font-family: var(--font-mono); }
 .msg { padding: 0.2em 0; border-bottom: 1px dashed var(--edge); }
 .msg .who { color: var(--accent); margin-right: 0.8em; font-weight: bold; }
 .msg .text { color: var(--ink); }
+
+/* ============================================================
+   Account page
+   ============================================================ */
+.account-option {
+  display: flex; gap: 1em; align-items: center; justify-content: space-between;
+  padding: 0.8em 0; border-bottom: 1px solid var(--edge); flex-wrap: wrap;
+}
+.account-option:last-child { border-bottom: none; }
+.account-option .label { flex: 1; min-width: 12em; }
+.account-option .label strong { display: block; color: var(--ink); }
+.account-option .label span { color: var(--muted); font-size: 0.88em; }
+.account-option .control .choice {
+  display: inline-flex; gap: 0.3em; align-items: center;
+}
+.account-option .control button.active {
+  background: var(--accent); color: var(--bg); text-shadow: none;
+}
+
+/* ============================================================
+   Responsive breakpoints
+   ============================================================ */
+
+/* Tablet — fold side-by-side grids, inline the action log */
+@media (max-width: 1100px) {
+  .action-log {
+    position: static; width: auto; max-width: 1100px;
+    margin: 0 auto 1em; max-height: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .grid.two { grid-template-columns: 1fr; }
+  main { padding: 0.8em; }
+
+  /* HUD stacks: brand row, vitals row */
+  .hud {
+    flex-direction: column; align-items: flex-start; gap: 0.5em;
+    padding: 0.6em 0.8em;
+  }
+  .vitals { justify-content: flex-start; width: 100%; }
+
+  /* Navbar becomes horizontally scrollable */
+  .navbar { padding: 0; gap: 0; font-size: 0.9em; }
+  .navbar a { padding: 0.7em 0.8em; }
+  .navbar .logout button { padding: 0.4em 0.7em; }
+
+  .job { flex-direction: column; align-items: stretch; }
+  .job-action { align-self: flex-end; }
+
+  /* Tables get a horizontal scroll jacket */
+  .itemlist, .stats {
+    display: block; overflow-x: auto; white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Phone — tighten everything, touch-friendlier */
+@media (max-width: 600px) {
+  main { padding: 0.6em; }
+  h1 { font-size: 1.4em; }
+  h2 { font-size: 1.1em; }
+  .pill { font-size: 0.82em; padding: 0.2em 0.5em; }
+  .brand a { font-size: 1.1em; letter-spacing: 0.15em; }
+  button, input[type=submit] { min-height: 2.4em; }  /* 44px-ish tap target */
+  input[type=text], input[type=number], input[type=password], input[name] { min-height: 2.4em; }
+  .auth { margin: 1.5em auto; }
+  .auth h1 { font-size: 1.8em; }
+  .city-tab { padding: 0.5em 0.7em; font-size: 0.88em; }
+  .achievements-grid { grid-template-columns: 1fr; }
+  .recipe-head h3 { font-size: 1em; }
+}

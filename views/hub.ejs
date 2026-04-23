@@ -26,7 +26,7 @@
       <h3 style="margin-top:1em">City passives ★</h3>
       <ul class="kv">
         <% for (const p of earnedPassives) { %>
-          <li><span><%= p.name %></span><strong><%= p.passive.description %></strong></li>
+          <li><span><%= cityName(p) %></span><strong><%= p.passive.description %></strong></li>
         <% } %>
       </ul>
     <% } %>
