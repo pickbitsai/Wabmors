@@ -184,7 +184,23 @@ app.post('/shop/buy/:id', loadChar, (req, res) => {
 // --- fight
 app.get('/fight', loadChar, (req, res) => {
   const opponents = game.findOpponents(req.char, 25);
-  res.render('fight', { opponents, actionLog: game.getActionLog(req.char.id) });
+  const ambushes = game.getLiveAmbushes(req.char.id);
+  // Who has attacked me recently (last 23h)?
+  const recentAttackers = db.prepare(`SELECT DISTINCT c.id, c.name FROM fight_log f
+    JOIN characters c ON c.id = f.attacker_id
+    WHERE f.defender_id = ? AND f.kind = 'fight' AND f.ts >= ? AND c.id != ?
+    ORDER BY f.ts DESC LIMIT 10`)
+    .all(req.char.id, game.now() - 23 * 3600, req.char.id);
+  res.render('fight', { opponents, ambushes, recentAttackers, actionLog: game.getActionLog(req.char.id) });
+});
+app.post('/fight/ambush', loadChar, (req, res) => {
+  try {
+    const targetId = parseInt(req.body.target_id, 10);
+    const cash = parseInt(req.body.cash, 10);
+    game.setAmbush(req.char, targetId, cash);
+    flash(req, 'Ambush set', 'good');
+  } catch (e) { flash(req, e.message, 'err'); }
+  res.redirect('/fight');
 });
 app.post('/fight/:id', loadChar, (req, res) => {
   const target = game.getCharacter(parseInt(req.params.id, 10));
@@ -289,6 +305,13 @@ app.post('/mob/fire/:slot', loadChar, (req, res) => {
     flash(req, 'Fired mobster', 'info');
   } catch (e) { flash(req, e.message, 'err'); }
   res.redirect('/mob');
+});
+
+// --- achievements
+app.get('/achievements', loadChar, (req, res) => {
+  const achievements = game.getAchievements(req.char.id);
+  const earned = achievements.filter(a => a.earned).length;
+  res.render('achievements', { achievements, earned, total: achievements.length });
 });
 
 // --- chat

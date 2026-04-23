@@ -2,7 +2,44 @@
 <%- include('partials/hud') %>
 <main>
   <h1>Fight</h1>
-  <p class="muted">Targets within ±20% of your level. Each attack costs <strong>1 Stamina</strong>. You keep health even when you lose; death means full heal cost.</p>
+  <p class="muted">Targets within ±20% of your level. Each attack costs <strong>1 Stamina</strong>. Your mob auto-fields its items alongside yours.</p>
+
+  <% if (recentAttackers && recentAttackers.length) { %>
+    <section class="card">
+      <h2>Revenge / Ambush</h2>
+      <p class="muted">Somebody jumped you in the last 23 hours. Pay cash to set a trap: the next time they attack, they eat <strong>60% max-HP</strong> before the fight even rolls.</p>
+      <table class="itemlist">
+        <thead><tr><th>Attacker</th><th>Ambush cost</th><th></th></tr></thead>
+        <tbody>
+        <% for (const a of recentAttackers) { %>
+          <tr>
+            <td><%= a.name %> <span class="muted">#<%= a.id %></span></td>
+            <td>
+              <form method="post" action="/fight/ambush" class="row">
+                <input type="hidden" name="target_id" value="<%= a.id %>">
+                <input type="number" name="cash" min="2000" value="2000" style="width:7em">
+                <button>Set Ambush</button>
+              </form>
+            </td>
+            <td></td>
+          </tr>
+        <% } %>
+        </tbody>
+      </table>
+    </section>
+  <% } %>
+
+  <% if (ambushes && ambushes.length) { %>
+    <section class="card">
+      <h2>Live ambushes</h2>
+      <ul class="kv">
+        <% for (const a of ambushes) { %>
+          <li><span><%= a.target_name %></span><strong>$<%= a.cash_paid.toLocaleString() %> set</strong></li>
+        <% } %>
+      </ul>
+    </section>
+  <% } %>
+
   <table class="itemlist">
     <thead><tr><th>Name</th><th>Level</th><th>Record</th><th>Cash on hand</th><th></th></tr></thead>
     <tbody>

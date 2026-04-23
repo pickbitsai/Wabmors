@@ -2,7 +2,7 @@ const db = require('./db');
 const {
   ITEMS, JOBS, PROPERTIES, REGEN, SKILL_COST, SKILL_POINTS_PER_LEVEL,
   INCOME_CAP_HOURS, xpForLevel, NPC_NAMES, MOB, HIRED_GUN_NAMES,
-  CITIES, CITY_MASTERY_THRESHOLD,
+  CITIES, CITY_MASTERY_THRESHOLD, AMBUSH, ACHIEVEMENTS,
 } = require('./data');
 
 const now = () => Math.floor(Date.now() / 1000);
@@ -283,6 +283,7 @@ function doJob(c, jobId) {
     .run(c.cash, c.xp, c.energy, c.energy_ts, c.jobs_done, c.id);
 
   const leveledUp = applyLevelUps(c);
+  evaluateAchievements(c);
   let msg = `${job.name}: +$${cash.toLocaleString()} / +${xp} XP`;
   if (lootItem) msg += ` / loot: ${ITEMS[lootItem].name}`;
   if (salvageItem) msg += ` / salvage: ${ITEMS[salvageItem].name}`;
@@ -339,6 +340,14 @@ function resolveFight(attacker, defender) {
   attacker.stamina -= 1;
   attacker.stamina_ts = now();
 
+  // Check if defender has set an ambush against this attacker.
+  const ambush = consumeAmbush(defender.id, attacker.id);
+  let ambushDmg = 0;
+  if (ambush) {
+    ambushDmg = Math.floor(attacker.max_health * AMBUSH.damage_multiplier);
+    attacker.health = Math.max(0, attacker.health - ambushDmg);
+  }
+
   const atkStr = fightStrength(attacker, 'attack');
   const defStr = fightStrength(defender, 'defense');
   const atkWon = atkStr >= defStr;
@@ -393,14 +402,19 @@ function resolveFight(attacker, defender) {
          cashStolen, dmgToDef, dmgToAtk, xp, 'fight', t);
 
   const leveledUp = atkWon ? applyLevelUps(attacker) : 0;
+  evaluateAchievements(attacker);
 
-  const msg = atkWon
+  let msg = atkWon
     ? `Beat ${defender.name}: +$${cashStolen.toLocaleString()} / +${xp} XP · dealt ${dmgToDef}, took ${dmgToAtk}`
     : `Lost to ${defender.name}: dealt ${dmgToDef}, took ${dmgToAtk}`;
+  if (ambushDmg > 0) msg += ` · AMBUSHED for ${ambushDmg}`;
   logAction(attacker.id, 'fight', msg, atkWon ? 1 : 0);
+  if (ambushDmg > 0) {
+    logAction(defender.id, 'ambush', `Ambush fired on ${attacker.name} for ${ambushDmg} damage`, 1);
+  }
 
   return { won: atkWon, cashStolen, xp, dmgToDef, dmgToAtk, leveledUp,
-           atkStr: Math.floor(atkStr), defStr: Math.floor(defStr) };
+           ambushDmg, atkStr: Math.floor(atkStr), defStr: Math.floor(defStr) };
 }
 
 // Opponents within +/- 20% level range, excluding self.
@@ -479,6 +493,7 @@ function completeHit(hitId, hunterId) {
          won ? hit.bounty : 0, dmgToTgt, dmgToHnt, won ? 10 : 0, t);
 
   if (won) applyLevelUps(hunter);
+  evaluateAchievements(hunter);
   const msg = won
     ? `Hit completed on ${target.name}: +$${hit.bounty.toLocaleString()}`
     : `Hit failed on ${target.name}: dealt ${dmgToTgt}, took ${dmgToHnt}`;
@@ -540,6 +555,7 @@ function buyOrUpgradeProperty(c, propertyId) {
     db.prepare(`INSERT INTO properties (character_id, property_id, level, last_collect_ts, uncollected)
                 VALUES (?, ?, 1, ?, 0)`).run(c.id, propertyId, t);
   }
+  evaluateAchievements(c);
   return { cost, newLevel: currentLevel + 1 };
 }
 
@@ -556,6 +572,7 @@ function collectProperties(c) {
     c.cash += total;
     db.prepare('UPDATE characters SET cash = ? WHERE id = ?').run(c.cash, c.id);
     logAction(c.id, 'collect', `Collected $${total.toLocaleString()} from properties`, 1);
+    evaluateAchievements(c);
   }
   return total;
 }
@@ -573,6 +590,77 @@ function favorRefill(c, which) {
     energy_ts = ?, stamina_ts = ?, health_ts = ? WHERE id = ?`)
     .run(c.favor_points, c.energy, c.stamina, c.health,
          c.energy_ts, c.stamina_ts, c.health_ts, c.id);
+}
+
+// ---------- AMBUSH ----------
+function setAmbush(setter, targetId, cashPaid) {
+  if (cashPaid < AMBUSH.base_cost) throw new Error(`ambush needs at least $${AMBUSH.base_cost.toLocaleString()}`);
+  if (setter.cash < cashPaid) throw new Error('not enough cash');
+  if (setter.id === targetId) throw new Error('cannot ambush self');
+  setter.cash -= cashPaid;
+  db.prepare('UPDATE characters SET cash = ? WHERE id = ?').run(setter.cash, setter.id);
+  db.prepare('INSERT INTO ambushes (setter_id, target_id, cash_paid, created_at) VALUES (?, ?, ?, ?)')
+    .run(setter.id, targetId, cashPaid, now());
+  logAction(setter.id, 'ambush', `Ambush set (−$${cashPaid.toLocaleString()})`, 1);
+}
+
+// Find a live ambush where `setter_id` = defender (I set it) and `target_id` = attacker (I'm targeting them).
+// Consumes the ambush if found.
+function consumeAmbush(defenderId, attackerId) {
+  const cutoff = now() - AMBUSH.max_age_hours * 3600;
+  const row = db.prepare(`SELECT id, cash_paid FROM ambushes
+    WHERE setter_id = ? AND target_id = ? AND triggered_at IS NULL AND created_at >= ?
+    ORDER BY id ASC LIMIT 1`).get(defenderId, attackerId, cutoff);
+  if (!row) return null;
+  db.prepare('UPDATE ambushes SET triggered_at = ? WHERE id = ?').run(now(), row.id);
+  return row;
+}
+
+function getLiveAmbushes(setterId) {
+  const cutoff = now() - AMBUSH.max_age_hours * 3600;
+  return db.prepare(`SELECT a.*, c.name AS target_name FROM ambushes a
+    JOIN characters c ON c.id = a.target_id
+    WHERE a.setter_id = ? AND a.triggered_at IS NULL AND a.created_at >= ?
+    ORDER BY a.created_at DESC`).all(setterId, cutoff);
+}
+
+// ---------- ACHIEVEMENTS ----------
+function evaluateAchievements(c) {
+  const earned = new Set(db.prepare('SELECT achievement_id FROM achievements WHERE character_id = ?').all(c.id).map(r => r.achievement_id));
+  const ctx = {
+    propertyCount: db.prepare('SELECT COUNT(*) AS n FROM properties WHERE character_id = ?').get(c.id).n,
+  };
+  const newlyEarned = [];
+  for (const a of ACHIEVEMENTS) {
+    if (earned.has(a.id)) continue;
+    try {
+      if (a.rule(c, ctx)) {
+        db.prepare('INSERT INTO achievements (character_id, achievement_id, earned_at) VALUES (?, ?, ?)').run(c.id, a.id, now());
+        // Apply rewards in-place on `c`
+        if (a.reward.cash) c.cash += a.reward.cash;
+        if (a.reward.xp) c.xp += a.reward.xp;
+        if (a.reward.favor_points) c.favor_points += a.reward.favor_points;
+        newlyEarned.push(a);
+      }
+    } catch (_) { /* rule error = skip */ }
+  }
+  if (newlyEarned.length) {
+    db.prepare('UPDATE characters SET cash = ?, xp = ?, favor_points = ? WHERE id = ?')
+      .run(c.cash, c.xp, c.favor_points, c.id);
+    for (const a of newlyEarned) {
+      const parts = [];
+      if (a.reward.cash) parts.push(`+$${a.reward.cash.toLocaleString()}`);
+      if (a.reward.favor_points) parts.push(`+${a.reward.favor_points} FP`);
+      if (a.reward.xp) parts.push(`+${a.reward.xp} XP`);
+      logAction(c.id, 'achievement', `★ ${a.name}: ${parts.join(' / ') || 'unlocked'}`, 1);
+    }
+  }
+  return newlyEarned;
+}
+
+function getAchievements(charId) {
+  const earned = new Set(db.prepare('SELECT achievement_id FROM achievements WHERE character_id = ?').all(charId).map(r => r.achievement_id));
+  return ACHIEVEMENTS.map(a => ({ ...a, earned: earned.has(a.id) }));
 }
 
 // ---------- CRAFTING ----------
@@ -692,5 +780,7 @@ module.exports = {
   mobCap, mobCount, getMob, hireGun, fireMobster, activeMobSize,
   craftRecipe, listRecipes, canCraft,
   earnedCityPassives, cityPassiveModifier,
+  setAmbush, getLiveAmbushes,
+  evaluateAchievements, getAchievements,
   seedNpcsIfEmpty,
 };

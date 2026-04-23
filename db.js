@@ -113,6 +113,23 @@ CREATE TABLE IF NOT EXISTS chat_messages (
 );
 CREATE INDEX IF NOT EXISTS idx_chat_ts ON chat_messages(ts);
 
+CREATE TABLE IF NOT EXISTS ambushes (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  setter_id     INTEGER NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+  target_id     INTEGER NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+  cash_paid     INTEGER NOT NULL,
+  created_at    INTEGER NOT NULL,
+  triggered_at  INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_ambush_live ON ambushes(target_id, setter_id, triggered_at);
+
+CREATE TABLE IF NOT EXISTS achievements (
+  character_id  INTEGER NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+  achievement_id TEXT NOT NULL,
+  earned_at     INTEGER NOT NULL,
+  PRIMARY KEY (character_id, achievement_id)
+);
+
 CREATE TABLE IF NOT EXISTS mob_members (
   owner_id     INTEGER NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
   slot         INTEGER NOT NULL,

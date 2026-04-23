@@ -174,6 +174,35 @@ const MOB = {
   flat_def_per_mobster: 0,
 };
 
+// ---------- AMBUSH ----------
+// Target pays cash to set an ambush on a specific attacker.
+// Next time that attacker hits the target, the ambush fires ONCE, dealing
+// heavy damage to the attacker and consuming itself.
+const AMBUSH = {
+  base_cost: 2000,          // minimum cash to set
+  max_age_hours: 23,        // ambush expires if the attacker doesn't return
+  damage_multiplier: 0.6,   // ambush does damage = multiplier * attacker.max_health
+};
+
+// ---------- ACHIEVEMENTS ----------
+// Simple rule-based. Evaluated after actions; stored in achievements table.
+// reward: { cash?, favor_points?, xp? }
+const ACHIEVEMENTS = [
+  { id: 'first_blood',      name: 'First Blood',       desc: 'Win your first fight',               rule: c => c.wins >= 1,         reward: { cash: 500,     favor_points: 1 } },
+  { id: 'ten_wins',         name: 'Ten Wins',          desc: 'Win 10 fights',                      rule: c => c.wins >= 10,        reward: { cash: 5000,    favor_points: 1 } },
+  { id: 'hundred_wins',     name: 'Century of Violence', desc: 'Win 100 fights',                  rule: c => c.wins >= 100,       reward: { cash: 50000,   favor_points: 3 } },
+  { id: 'thousand_wins',    name: 'Bloodbath',         desc: 'Win 1,000 fights',                   rule: c => c.wins >= 1000,      reward: { cash: 500000,  favor_points: 10 } },
+  { id: 'first_job',        name: 'Day One',           desc: 'Complete your first job',            rule: c => c.jobs_done >= 1,    reward: { cash: 100 } },
+  { id: 'hundred_jobs',     name: 'Grinder',           desc: 'Complete 100 jobs',                  rule: c => c.jobs_done >= 100,  reward: { cash: 10000,   favor_points: 1 } },
+  { id: 'thousand_jobs',    name: 'The Earner',        desc: 'Complete 1,000 jobs',                rule: c => c.jobs_done >= 1000, reward: { cash: 200000,  favor_points: 5 } },
+  { id: 'level_10',         name: 'Made Man',          desc: 'Reach level 10',                     rule: c => c.level >= 10,       reward: { cash: 5000,    favor_points: 1 } },
+  { id: 'level_25',         name: 'Capo',              desc: 'Reach level 25',                     rule: c => c.level >= 25,       reward: { cash: 50000,   favor_points: 2 } },
+  { id: 'level_50',         name: 'Underboss',         desc: 'Reach level 50',                     rule: c => c.level >= 50,       reward: { cash: 250000,  favor_points: 5 } },
+  { id: 'level_75',         name: 'Don',               desc: 'Reach level 75',                     rule: c => c.level >= 75,       reward: { cash: 1000000, favor_points: 10 } },
+  { id: 'first_property',   name: 'Landlord',          desc: 'Own your first property',            rule: (c, ctx) => ctx.propertyCount >= 1, reward: { cash: 500 } },
+  { id: 'millionaire',      name: 'Made a Million',    desc: 'Hold $1,000,000',                    rule: c => c.cash >= 1000000,   reward: { favor_points: 3 } },
+];
+
 const HIRED_GUN_NAMES = [
   'Little Nicky', 'Three-Finger Louie', 'Fat Tony', 'Bugsy', 'Ricky the Rat',
   'Ace of Spades', 'Benny the Book', 'Uncle Junior', 'Dominic the Dragon', 'Mario the Mechanic',
@@ -218,4 +247,5 @@ module.exports = {
   ITEMS, JOBS, PROPERTIES, RECIPES, CITIES, CITY_MASTERY_THRESHOLD,
   NPC_NAMES, REGEN, SKILL_COST, SKILL_POINTS_PER_LEVEL,
   INCOME_CAP_HOURS, xpForLevel, MOB, HIRED_GUN_NAMES,
+  AMBUSH, ACHIEVEMENTS,
 };

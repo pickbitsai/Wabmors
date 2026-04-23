@@ -1,0 +1,23 @@
+<%- include('partials/head', { title: 'Achievements' }) %>
+<%- include('partials/hud') %>
+<main>
+  <h1>Achievements</h1>
+  <p class="muted">Earned: <strong><%= earned %></strong> / <%= total %></p>
+
+  <section class="card">
+    <div class="achievements-grid">
+      <% for (const a of achievements) { %>
+        <div class="achievement <%= a.earned ? 'earned' : '' %>">
+          <div class="a-name"><%= a.earned ? '★' : '☆' %> <%= a.name %></div>
+          <div class="a-desc"><%= a.desc %></div>
+          <div class="a-reward">
+            <% if (a.reward.cash) { %>+$<%= a.reward.cash.toLocaleString() %><% } %>
+            <% if (a.reward.favor_points) { %> +<%= a.reward.favor_points %> FP<% } %>
+            <% if (a.reward.xp) { %> +<%= a.reward.xp %> XP<% } %>
+          </div>
+        </div>
+      <% } %>
+    </div>
+  </section>
+</main>
+<%- include('partials/foot') %>

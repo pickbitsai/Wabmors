@@ -159,6 +159,18 @@ input[type=text], input[type=number], input[type=password], input[name] {
 .loadout { list-style: none; padding: 0; }
 .loadout li { padding: 0.3em 0; border-bottom: 1px dashed var(--edge); }
 
+/* Achievements */
+.achievements-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15em, 1fr)); gap: 0.6em; }
+.achievement {
+  background: var(--bg); border: 1px solid var(--edge); padding: 0.7em 0.9em; border-radius: 2px;
+  opacity: 0.5;
+}
+.achievement.earned { opacity: 1; border-color: var(--accent); }
+.achievement .a-name { color: var(--accent); font-weight: bold; }
+.achievement.earned .a-name { color: var(--accent); }
+.achievement .a-desc { font-size: 0.85em; color: var(--muted); margin: 0.2em 0; }
+.achievement .a-reward { font-size: 0.75em; color: #bce1a8; font-family: monospace; }
+
 /* Workshop */
 .recipe { padding: 0.8em 1em; }
 .recipe-head h3 { margin: 0; }
