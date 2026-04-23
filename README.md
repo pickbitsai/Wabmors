@@ -23,33 +23,40 @@ PORT=4000 npm start               # bash
 
 Then open [http://localhost:3456](http://localhost:3456), register → name your gangster → you're in.
 
-## What's in (Phase 1)
+## What's in
 
+### Core loop (Phase 1)
 - **5-stat character model** — Health, Energy, Stamina, Attack, Defense with the asymmetric skill-point economy from LCN (Stamina costs 2 SP per point; Max Health gives +10 per SP).
 - **Regen-over-time vitals** — Energy 1/180s, Stamina 1/300s, Health 1/90s, computed on read, accurate across offline periods.
-- **Jobs** — 15 jobs across 5 tiers, gated by level, consume energy, pay cash + XP, with mastery counters and random loot drops.
-- **Inventory + loadouts** — weapons/armor/vehicles with separate attack- and defense-optimised best-loadout selection.
+- **Jobs** — 26 jobs across 3 cities and 5 tiers, gated by level, consume energy, pay cash + XP, with mastery counters, loot drops, and component salvage.
+- **Inventory + mob-scaled loadouts** — weapons/armor/vehicles with top-N-per-slot fielding driven by mob size.
 - **PvP fights** — `(stat + item totals) × random[0.85, 1.15]` attacker vs defender; cash stolen on win; both sides take HP damage.
 - **Hitlist** — place a bounty on any player; hunters cost 2 stamina per hit, get a 15% attack bonus.
-- **Properties / City** — 7 property types, linear income scaling by level, 24h uncollected cap, compute-on-read income (never ticks).
+- **Properties / City** — 7 property types, linear income scaling by level, 24h uncollected cap, compute-on-read income.
 - **Favor Points** — earned on level up, spend for full vital refills.
-- **World chat**.
+- **World chat** + **rolling action log** (last 12 actions pinned on jobs/fight/hitlist/properties pages).
 - **NPC seed** — 60 mobsters with gear, so you can fight from minute one.
 
-## Roadmap
+### Social + deep systems (Phase 2 — partial)
+- **Mob / Hired Guns** — recruit mobsters for 1 FP each. Mob size cap = 25 + 2/level above 75 (cap 1000). Active-in-fight count scales with level; each active mobster brings a weapon + armor + vehicle from your inventory into battle.
+- **Workshop / crafting** — 4 visible recipes + 1 hidden blueprint. Components drop as job salvage. Crafting an upgraded item consumes inputs and produces better gear.
+- **Multi-city jobs + mastery passives** — New York (lvl 1+), Chicago (lvl 20+), Las Vegas (lvl 40+). Mastering every tier-5 job in a city (25+ completions each) unlocks a permanent passive: -5% property cost (NYC), +5% property income (Chicago), +10% fight XP (Vegas).
+- **Ambush** — after you're attacked, pay cash to set an ambush on that attacker. Their next attack eats 60% max-HP damage before the fight rolls. 23h expiry, single-use.
+- **Achievements** — 13 rule-based milestones with cash/FP/XP rewards that auto-apply on earn.
 
-### Phase 2 — social + deep systems
-- Friend/mob member recruitment with equip-three-items rule
+### Roadmap (still to come)
+
+**Phase 2 remainder:**
 - Syndicates (guilds) + shared chat + syndicate quests
-- Crafting / workshop (recipes, components, reverse-craft, hidden blueprints)
-- Multi-city with job mastery → permanent passives (property discount, income boost)
-- Ambush, punches, Familia
+- Familia (designated inner-circle with passive cash share)
+- Punches (lightweight stamina attack)
+- Real-player mob recruitment (invite codes)
 
-### Phase 3 — events + endgame
+**Phase 3 — events + endgame:**
 - **Syndicate Wars** (bi-weekly, divisions, top-15 member stats, 5-min respawn, decaying kill bonus)
 - **Battle Arena** (level 250+, 24h brawl→sudden-death)
 - **Raid Bosses** (ranks 0→25+, 2000-action threshold, superior drops, world bosses)
-- Achievements, global + social leaderboards, seasonal events
+- Global + social leaderboards, seasonal events
 
 ## Architecture
 
