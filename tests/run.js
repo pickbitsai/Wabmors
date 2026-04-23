@@ -24,7 +24,7 @@ function loadPlaywright() {
   throw new Error('playwright not found (install globally or locally)');
 }
 
-const PORT = process.env.WOBMORS_TEST_PORT || 4789;
+const PORT = process.env.WABMORS_TEST_PORT || 4789;
 const BASE = `http://localhost:${PORT}`;
 const DB_PATH = path.join(__dirname, '..', 'test.db');
 

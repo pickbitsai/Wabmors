@@ -15,8 +15,8 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 // Stateless signed-cookie sessions — work on serverless without a session store.
 app.use(cookieSession({
-  name: 'wobmors',
-  keys: [process.env.SESSION_SECRET || 'wobmors-dev-secret-change-me'],
+  name: 'wabmors',
+  keys: [process.env.SESSION_SECRET || 'wabmors-dev-secret-change-me'],
   maxAge: 1000 * 60 * 60 * 24 * 30,
   sameSite: 'lax',
   httpOnly: true,
@@ -345,7 +345,7 @@ game.seedNpcsIfEmpty(60);
 // the app and the platform invokes it via an adapter.
 if (require.main === module) {
   app.listen(PORT, () => {
-    console.log(`WobMors running at http://localhost:${PORT}`);
+    console.log(`Wabmors running at http://localhost:${PORT}`);
   });
 }
 

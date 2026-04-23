@@ -1,12 +1,12 @@
 {
-  "name": "wobmors",
+  "name": "wabmors",
   "version": "0.1.0",
   "private": false,
-  "description": "WobMors — a 2000s-style mafia browser RPG inspired by Mob Wars and Mafia Wars",
+  "description": "Wabmors — a 2000s-style mafia browser RPG inspired by Mob Wars and Mafia Wars",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pickbitsai/WobMors.git"
+    "url": "https://github.com/pickbitsai/Wabmors.git"
   },
   "main": "server.js",
   "scripts": {

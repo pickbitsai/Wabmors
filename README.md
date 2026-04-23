@@ -1,4 +1,4 @@
-# WobMors
+# Wabmors
 
 A 2000s-style mafia browser RPG, inspired by **Mob Wars** (David Maestri, 2008), **Mafia Wars** (Zynga), and **Mob Wars: La Cosa Nostra** (Kano). Server-rendered, grindy, ad-free, and offline-friendly — a working Phase 1 of that feature surface you can run locally in one command.
 
@@ -9,7 +9,7 @@ Not affiliated with Kano or any prior *Mob Wars* / *Mafia Wars* title. This is a
 ```bash
 npm install
 npm start
-# → WobMors running at http://localhost:3456
+# → Wabmors running at http://localhost:3456
 ```
 
 Override the port:
