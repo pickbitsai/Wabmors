@@ -81,6 +81,32 @@ public/        CSS (dark gold/red mafia aesthetic)
 - **EJS** — server-rendered templates (no SPA, matches the 2000s aesthetic)
 - **bcryptjs** — password hashing
 
+## Deploying on Vercel
+
+This repo is wired up for Vercel deploys. The root `vercel.json` rewrites all requests to `api/index.js`, which re-exports the Express app from `server.js`.
+
+### Setup
+1. Connect the repo in Vercel.
+2. No build command needed — `npm install` builds `better-sqlite3` natively.
+3. Set a session secret (Vercel → Project → Settings → Environment Variables):
+   - `SESSION_SECRET` = any long random string
+
+### Storage caveat (important)
+Vercel serverless functions have an **ephemeral `/tmp`** filesystem and no shared disk. This app currently uses `better-sqlite3` with a local file DB, so on Vercel:
+- Cold starts wipe the DB (~5 min of inactivity → blank slate).
+- Each function instance has its own copy of the DB.
+- PvP, chat, and hitlist don't share state across users in different instances.
+
+In short: **a Vercel preview is good for demoing the loop; it's not a real persistent game.**
+
+### To make it production-ready
+Swap the DB for a hosted backend. The cleanest options, in order of refactor cost:
+- **Turso (libsql)** — drop-in SQLite-compatible, minimal code change. Set `DATABASE_URL` env var.
+- **Supabase / Neon / Vercel Postgres** — bigger refactor (pg driver + dialect tweaks), but richer tooling.
+- **Fly.io / Railway / Render** — keep `better-sqlite3` and get a persistent disk. Simplest if you don't need Vercel's CDN.
+
+Ask and I'll wire one up.
+
 ## Contributing
 
 Issues + PRs welcome. The game-data catalog in `data.js` is the easiest place to start — new jobs, items, and properties are pure data additions.

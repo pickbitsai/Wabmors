@@ -4,7 +4,10 @@
   "private": false,
   "description": "WobMors — a 2000s-style mafia browser RPG inspired by Mob Wars and Mafia Wars",
   "license": "MIT",
-  "repository": { "type": "git", "url": "https://github.com/pickbitsai/WobMors.git" },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pickbitsai/WobMors.git"
+  },
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -13,8 +16,8 @@
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "better-sqlite3": "^11.3.0",
+    "cookie-session": "^2.1.1",
     "ejs": "^3.1.10",
-    "express": "^4.21.2",
-    "express-session": "^1.18.1"
+    "express": "^4.21.2"
   }
 }

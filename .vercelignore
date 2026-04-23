@@ -1,0 +1,7 @@
+node_modules
+.claude
+*.db
+*.db-wal
+*.db-shm
+server.log
+server.pid

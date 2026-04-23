@@ -1,5 +1,5 @@
 const express = require('express');
-const session = require('express-session');
+const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
 const path = require('path');
 const db = require('./db');
@@ -13,20 +13,25 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'mw-dev-secret-change-me',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { maxAge: 1000 * 60 * 60 * 24 * 30 },
+// Stateless signed-cookie sessions — work on serverless without a session store.
+app.use(cookieSession({
+  name: 'wobmors',
+  keys: [process.env.SESSION_SECRET || 'wobmors-dev-secret-change-me'],
+  maxAge: 1000 * 60 * 60 * 24 * 30,
+  sameSite: 'lax',
+  httpOnly: true,
+  secure: process.env.VERCEL ? true : false,
 }));
 
 // ---------- flash helper ----------
+// cookie-session session object is `null` until first write, so guard writes.
 app.use((req, res, next) => {
-  res.locals.flash = req.session.flash || null;
-  req.session.flash = null;
+  res.locals.flash = (req.session && req.session.flash) || null;
+  if (req.session) req.session.flash = null;
   next();
 });
 function flash(req, text, kind = 'info') {
+  if (!req.session) req.session = {};
   req.session.flash = { text, kind };
 }
 
@@ -81,7 +86,7 @@ app.post('/login', guest, (req, res) => {
   res.redirect('/');
 });
 
-app.post('/logout', (req, res) => { req.session.destroy(() => res.redirect('/login')); });
+app.post('/logout', (req, res) => { req.session = null; res.redirect('/login'); });
 
 app.get('/create-character', (req, res) => {
   if (!req.session.userId) return res.redirect('/login');
@@ -274,6 +279,12 @@ app.post('/chat', loadChar, (req, res) => {
 // ---------- boot ----------
 game.seedNpcsIfEmpty(60);
 
-app.listen(PORT, () => {
-  console.log(`WobMors running at http://localhost:${PORT}`);
-});
+// Only listen when run directly (local dev). On serverless (Vercel), we export
+// the app and the platform invokes it via an adapter.
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`WobMors running at http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;

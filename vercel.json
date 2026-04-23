@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 10
+    }
+  },
+  "rewrites": [
+    { "source": "/style.css", "destination": "/style.css" },
+    { "source": "/(.*)", "destination": "/api/index" }
+  ]
+}

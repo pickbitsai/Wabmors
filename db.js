@@ -1,8 +1,15 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 
-const db = new Database(path.join(__dirname, 'game.db'));
-db.pragma('journal_mode = WAL');
+// On Vercel / serverless, the project root is read-only. Fall back to /tmp.
+// DATABASE_FILE env var overrides both.
+const dbPath = process.env.DATABASE_FILE
+  || (process.env.VERCEL ? '/tmp/game.db' : path.join(__dirname, 'game.db'));
+
+const db = new Database(dbPath);
+// Journal mode: WAL requires a writable directory with companion -shm/-wal files.
+// On Vercel /tmp works, but cold starts may lose uncheckpointed writes — DELETE mode is safer there.
+db.pragma(process.env.VERCEL ? 'journal_mode = DELETE' : 'journal_mode = WAL');
 db.pragma('foreign_keys = ON');
 
 db.exec(`
