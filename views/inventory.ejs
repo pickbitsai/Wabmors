@@ -3,25 +3,42 @@
 <main>
   <h1>Inventory</h1>
   <section class="card">
-    <h2>Equipped loadouts</h2>
+    <h2>Fight loadout</h2>
+    <p class="muted">
+      Each fight, you + your active mob bring <strong><%= (atk.weapons || []).length %></strong> weapons,
+      <strong><%= (atk.armors || []).length %></strong> armors, and <strong><%= (atk.vehicles || []).length %></strong> vehicles
+      (the rest sit on the shelf — so stockpiling matters).
+    </p>
     <div class="grid two">
       <div>
-        <h3>Attack (offense prioritised)</h3>
+        <h3>Offense-ranked</h3>
         <ul class="loadout">
-          <li>Weapon: <%= atk.weapon ? `${atk.weapon.name} (+${atk.weapon.atk}/+${atk.weapon.def})` : '—' %></li>
-          <li>Armor: <%= atk.armor ? `${atk.armor.name} (+${atk.armor.atk}/+${atk.armor.def})` : '—' %></li>
-          <li>Vehicle: <%= atk.vehicle ? `${atk.vehicle.name} (+${atk.vehicle.atk}/+${atk.vehicle.def})` : '—' %></li>
+          <% if ((atk.weapons||[]).length) { for (const i of atk.weapons) { %>
+            <li>W: <%= i.name %> (+<%= i.atk %>/+<%= i.def %>)</li>
+          <% } } else { %><li>no weapons</li><% } %>
+          <% if ((atk.armors||[]).length) { for (const i of atk.armors) { %>
+            <li>A: <%= i.name %> (+<%= i.atk %>/+<%= i.def %>)</li>
+          <% } } else { %><li>no armor</li><% } %>
+          <% if ((atk.vehicles||[]).length) { for (const i of atk.vehicles) { %>
+            <li>V: <%= i.name %> (+<%= i.atk %>/+<%= i.def %>)</li>
+          <% } } else { %><li>no vehicles</li><% } %>
         </ul>
-        <p>Bonus: <strong>+<%= totalsAtk.atk %></strong> atk / +<%= totalsAtk.def %> def</p>
+        <p>Total bonus: <strong>+<%= totalsAtk.atk %></strong> atk / +<%= totalsAtk.def %> def</p>
       </div>
       <div>
-        <h3>Defense (defense prioritised)</h3>
+        <h3>Defense-ranked</h3>
         <ul class="loadout">
-          <li>Weapon: <%= def.weapon ? `${def.weapon.name} (+${def.weapon.atk}/+${def.weapon.def})` : '—' %></li>
-          <li>Armor: <%= def.armor ? `${def.armor.name} (+${def.armor.atk}/+${def.armor.def})` : '—' %></li>
-          <li>Vehicle: <%= def.vehicle ? `${def.vehicle.name} (+${def.vehicle.atk}/+${def.vehicle.def})` : '—' %></li>
+          <% if ((def.weapons||[]).length) { for (const i of def.weapons) { %>
+            <li>W: <%= i.name %> (+<%= i.atk %>/+<%= i.def %>)</li>
+          <% } } else { %><li>no weapons</li><% } %>
+          <% if ((def.armors||[]).length) { for (const i of def.armors) { %>
+            <li>A: <%= i.name %> (+<%= i.atk %>/+<%= i.def %>)</li>
+          <% } } else { %><li>no armor</li><% } %>
+          <% if ((def.vehicles||[]).length) { for (const i of def.vehicles) { %>
+            <li>V: <%= i.name %> (+<%= i.atk %>/+<%= i.def %>)</li>
+          <% } } else { %><li>no vehicles</li><% } %>
         </ul>
-        <p>Bonus: +<%= totalsDef.atk %> atk / <strong>+<%= totalsDef.def %></strong> def</p>
+        <p>Total bonus: +<%= totalsDef.atk %> atk / <strong>+<%= totalsDef.def %></strong> def</p>
       </div>
     </div>
   </section>

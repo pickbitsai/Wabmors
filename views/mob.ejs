@@ -1,0 +1,42 @@
+<%- include('partials/head', { title: 'Mob' }) %>
+<%- include('partials/hud') %>
+<main>
+  <h1>Your Mob</h1>
+  <section class="card">
+    <p>
+      Mob size: <strong><%= members.length %></strong> / <%= cap %> cap ·
+      Active in fights: <strong><%= active %></strong>
+      <span class="muted">(scales with level)</span>
+    </p>
+    <p class="muted">
+      Each mobster brings an extra weapon + armor + vehicle from your inventory into battles —
+      so the bigger your mob, the more of your stockpile actually fights. Level up to raise the
+      "active in fight" cap. Hired Guns cost <strong>1 Favor Point</strong> each.
+    </p>
+    <form method="post" action="/mob/hire" class="row">
+      <label>Hire <input type="number" name="qty" min="1" max="5" value="1" style="width:4em"> guns</label>
+      <button <%= char.favor_points < 1 || members.length >= cap ? 'disabled' : '' %>>Hire (1 FP each)</button>
+      <span class="muted">You have <%= char.favor_points %> FP</span>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Members</h2>
+    <% if (members.length === 0) { %><p class="muted">You walk alone. Hire your first gun.</p><% } %>
+    <table class="itemlist">
+      <thead><tr><th>Slot</th><th>Name</th><th>Kind</th><th>Joined</th><th></th></tr></thead>
+      <tbody>
+      <% for (const m of members) { %>
+        <tr>
+          <td>#<%= m.slot %></td>
+          <td><%= m.name %></td>
+          <td><%= m.kind %></td>
+          <td class="muted"><%= new Date(m.joined_at * 1000).toLocaleDateString() %></td>
+          <td><form method="post" action="/mob/fire/<%= m.slot %>"><button>Fire</button></form></td>
+        </tr>
+      <% } %>
+      </tbody>
+    </table>
+  </section>
+</main>
+<%- include('partials/foot') %>

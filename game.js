@@ -1,12 +1,28 @@
 const db = require('./db');
 const {
   ITEMS, JOBS, PROPERTIES, REGEN, SKILL_COST, SKILL_POINTS_PER_LEVEL,
-  INCOME_CAP_HOURS, xpForLevel, NPC_NAMES,
+  INCOME_CAP_HOURS, xpForLevel, NPC_NAMES, MOB, HIRED_GUN_NAMES,
 } = require('./data');
 
 const now = () => Math.floor(Date.now() / 1000);
 const rand = (min, max) => min + Math.floor(Math.random() * (max - min + 1));
 const randf = (min, max) => min + Math.random() * (max - min);
+
+// ---------- ACTION LOG ----------
+// Trim per-character to the last LOG_KEEP rows to keep table small.
+const LOG_KEEP = 30;
+function logAction(charId, kind, text, good = 0) {
+  db.prepare('INSERT INTO action_log (character_id, kind, text, good, ts) VALUES (?, ?, ?, ?, ?)')
+    .run(charId, kind, text, good ? 1 : 0, now());
+  // Prune
+  db.prepare(`DELETE FROM action_log WHERE character_id = ? AND id NOT IN (
+    SELECT id FROM action_log WHERE character_id = ? ORDER BY id DESC LIMIT ?
+  )`).run(charId, charId, LOG_KEEP);
+}
+function getActionLog(charId, n = 12) {
+  return db.prepare('SELECT kind, text, good, ts FROM action_log WHERE character_id = ? ORDER BY id DESC LIMIT ?')
+    .all(charId, n);
+}
 
 // ---------- REGEN ----------
 // Vitals are stored as (value, updated_at). We compute current on read and
@@ -149,27 +165,84 @@ function getInventory(charId) {
     .sort((a, b) => (a.slot === b.slot ? b.atk + b.def - a.atk - a.def : a.slot.localeCompare(b.slot)));
 }
 
-// Equipped loadout: best weapon + best armor + best vehicle by (atk*2 + def) when attacking, (def*2 + atk) when defending.
-function bestLoadout(charId, mode = 'attack') {
-  const inv = getInventory(charId);
-  const pick = (slot) => {
-    const candidates = inv.filter(i => i.slot === slot && i.quantity > 0);
-    if (candidates.length === 0) return null;
+// Number of "slots" per item type brought into a fight:
+//   1 (the player themselves) + the active mob size.
+// Active mob size = min(total mob size, floor(level * MOB.active_per_level)).
+function activeMobSize(char) {
+  const total = mobCount(char.id);
+  const byLevel = Math.floor(char.level * MOB.active_per_level);
+  return Math.min(total, byLevel);
+}
+function loadoutSlotsPerType(char) {
+  return 1 + activeMobSize(char);
+}
+
+// Equipped loadout: top-N weapons + top-N armor + top-N vehicles (N = 1 + active mob size).
+function bestLoadout(char, mode = 'attack') {
+  const inv = getInventory(char.id);
+  const n = loadoutSlotsPerType(char);
+  const pickTopN = (slot) => {
+    const candidates = inv
+      .filter(i => i.slot === slot && i.quantity > 0)
+      // Each quantity slot can back one mobster; expand stacks
+      .flatMap(i => Array(i.quantity).fill(i));
+    if (candidates.length === 0) return [];
     const score = mode === 'attack'
       ? (i) => i.atk * 2 + i.def
       : (i) => i.def * 2 + i.atk;
-    return candidates.sort((a, b) => score(b) - score(a))[0];
+    candidates.sort((a, b) => score(b) - score(a));
+    return candidates.slice(0, n);
   };
   return {
-    weapon:  pick('weapon'),
-    armor:   pick('armor'),
-    vehicle: pick('vehicle'),
+    weapons:  pickTopN('weapon'),
+    armors:   pickTopN('armor'),
+    vehicles: pickTopN('vehicle'),
   };
 }
 
 function loadoutTotals(loadout) {
-  const items = [loadout.weapon, loadout.armor, loadout.vehicle].filter(Boolean);
-  return items.reduce((acc, i) => ({ atk: acc.atk + i.atk, def: acc.def + i.def }), { atk: 0, def: 0 });
+  const all = [...(loadout.weapons || []), ...(loadout.armors || []), ...(loadout.vehicles || [])];
+  return all.reduce((acc, i) => ({ atk: acc.atk + i.atk, def: acc.def + i.def }), { atk: 0, def: 0 });
+}
+
+// Preview helpers (single-best, for UI summary)
+function topItem(loadout, slot) {
+  const list = loadout[slot === 'weapon' ? 'weapons' : slot === 'armor' ? 'armors' : 'vehicles'];
+  return list && list[0] ? list[0] : null;
+}
+
+// ---------- MOB / HIRED GUNS ----------
+function mobCap(level) {
+  const bonus = Math.max(0, level - MOB.level75_threshold) * MOB.level75_bonus_per;
+  return Math.min(MOB.hard_cap, MOB.base_cap + bonus);
+}
+function mobCount(ownerId) {
+  return db.prepare('SELECT COUNT(*) AS n FROM mob_members WHERE owner_id = ?').get(ownerId).n;
+}
+function getMob(ownerId) {
+  return db.prepare('SELECT slot, name, kind, joined_at FROM mob_members WHERE owner_id = ? ORDER BY slot ASC').all(ownerId);
+}
+function nextMobSlot(ownerId) {
+  const row = db.prepare('SELECT MAX(slot) AS m FROM mob_members WHERE owner_id = ?').get(ownerId);
+  return (row.m || 0) + 1;
+}
+function hireGun(c) {
+  if (c.favor_points < MOB.hired_gun_cost_fp) throw new Error('not enough favor points');
+  if (mobCount(c.id) >= mobCap(c.level)) throw new Error('mob full (level up to raise cap)');
+  c.favor_points -= MOB.hired_gun_cost_fp;
+  const name = HIRED_GUN_NAMES[Math.floor(Math.random() * HIRED_GUN_NAMES.length)]
+    + ' #' + Math.floor(Math.random() * 10000);
+  db.prepare('INSERT INTO mob_members (owner_id, slot, name, kind, joined_at) VALUES (?, ?, ?, ?, ?)')
+    .run(c.id, nextMobSlot(c.id), name, 'hired_gun', now());
+  db.prepare('UPDATE characters SET favor_points = ? WHERE id = ?').run(c.favor_points, c.id);
+  logAction(c.id, 'mob', `Hired ${name} (−1 FP)`, 1);
+  return { name };
+}
+function fireMobster(c, slot) {
+  const row = db.prepare('SELECT name FROM mob_members WHERE owner_id = ? AND slot = ?').get(c.id, slot);
+  if (!row) throw new Error('not in mob');
+  db.prepare('DELETE FROM mob_members WHERE owner_id = ? AND slot = ?').run(c.id, slot);
+  logAction(c.id, 'mob', `Fired ${row.name}`, 0);
 }
 
 // ---------- JOBS ----------
@@ -204,6 +277,10 @@ function doJob(c, jobId) {
     .run(c.cash, c.xp, c.energy, c.energy_ts, c.jobs_done, c.id);
 
   const leveledUp = applyLevelUps(c);
+  let msg = `${job.name}: +$${cash.toLocaleString()} / +${xp} XP`;
+  if (lootItem) msg += ` / loot: ${ITEMS[lootItem].name}`;
+  if (leveledUp) msg += ` / LEVEL UP! (+${leveledUp})`;
+  logAction(c.id, 'job', msg, 1);
   return { cash, xp, lootItem, leveledUp };
 }
 
@@ -215,12 +292,16 @@ function getJobMastery(charId) {
 }
 
 // ---------- FIGHTING ----------
-// Total fight strength = personal stat + item slot sum + small randomness.
+// Total fight strength = personal stat + item slot sum (top-N per slot, N = 1 + active mob) + flat per-mobster bonus.
 function fightStrength(c, mode = 'attack') {
-  const loadout = bestLoadout(c.id, mode);
+  const loadout = bestLoadout(c, mode);
   const items = loadoutTotals(loadout);
-  if (mode === 'attack') return (c.attack + items.atk) * randf(0.85, 1.15);
-  return (c.defense + items.def) * randf(0.85, 1.15);
+  const mobN = activeMobSize(c);
+  const flat = mode === 'attack'
+    ? mobN * MOB.flat_atk_per_mobster
+    : mobN * MOB.flat_def_per_mobster;
+  if (mode === 'attack') return (c.attack + items.atk + flat) * randf(0.85, 1.15);
+  return (c.defense + items.def + flat) * randf(0.85, 1.15);
 }
 
 function resolveFight(attacker, defender) {
@@ -280,6 +361,11 @@ function resolveFight(attacker, defender) {
          cashStolen, dmgToDef, dmgToAtk, xp, 'fight', t);
 
   const leveledUp = atkWon ? applyLevelUps(attacker) : 0;
+
+  const msg = atkWon
+    ? `Beat ${defender.name}: +$${cashStolen.toLocaleString()} / +${xp} XP · dealt ${dmgToDef}, took ${dmgToAtk}`
+    : `Lost to ${defender.name}: dealt ${dmgToDef}, took ${dmgToAtk}`;
+  logAction(attacker.id, 'fight', msg, atkWon ? 1 : 0);
 
   return { won: atkWon, cashStolen, xp, dmgToDef, dmgToAtk, leveledUp,
            atkStr: Math.floor(atkStr), defStr: Math.floor(defStr) };
@@ -361,6 +447,10 @@ function completeHit(hitId, hunterId) {
          won ? hit.bounty : 0, dmgToTgt, dmgToHnt, won ? 10 : 0, t);
 
   if (won) applyLevelUps(hunter);
+  const msg = won
+    ? `Hit completed on ${target.name}: +$${hit.bounty.toLocaleString()}`
+    : `Hit failed on ${target.name}: dealt ${dmgToTgt}, took ${dmgToHnt}`;
+  logAction(hunter.id, 'hit', msg, won ? 1 : 0);
   return { won, bounty: won ? hit.bounty : 0, dmgToTgt, dmgToHnt };
 }
 
@@ -429,6 +519,7 @@ function collectProperties(c) {
   if (total > 0) {
     c.cash += total;
     db.prepare('UPDATE characters SET cash = ? WHERE id = ?').run(c.cash, c.id);
+    logAction(c.id, 'collect', `Collected $${total.toLocaleString()} from properties`, 1);
   }
   return total;
 }
@@ -509,5 +600,7 @@ module.exports = {
   getOwnedProperties, buyOrUpgradeProperty, collectProperties, propertyUpgradeCost,
   favorRefill, buyItem,
   postChat, getChat,
+  logAction, getActionLog,
+  mobCap, mobCount, getMob, hireGun, fireMobster, activeMobSize,
   seedNpcsIfEmpty,
 };

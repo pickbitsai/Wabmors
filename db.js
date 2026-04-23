@@ -105,6 +105,26 @@ CREATE TABLE IF NOT EXISTS chat_messages (
   ts           INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_chat_ts ON chat_messages(ts);
+
+CREATE TABLE IF NOT EXISTS mob_members (
+  owner_id     INTEGER NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+  slot         INTEGER NOT NULL,
+  name         TEXT NOT NULL,
+  kind         TEXT NOT NULL,  -- 'hired_gun' or 'friend'
+  joined_at    INTEGER NOT NULL,
+  PRIMARY KEY (owner_id, slot)
+);
+CREATE INDEX IF NOT EXISTS idx_mob_owner ON mob_members(owner_id);
+
+CREATE TABLE IF NOT EXISTS action_log (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  character_id INTEGER NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+  kind         TEXT NOT NULL,
+  text         TEXT NOT NULL,
+  good         INTEGER NOT NULL DEFAULT 0,
+  ts           INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_log_char ON action_log(character_id, id);
 `);
 
 module.exports = db;

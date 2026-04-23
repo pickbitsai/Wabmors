@@ -76,6 +76,28 @@ const PROPERTIES = [
 // Uncollected income is capped at 24h of production.
 const INCOME_CAP_HOURS = 24;
 
+// ---------- MOB CAPS ----------
+// LCN: 500 hired guns + 500 friends at start; after lvl 75 +2/level, hard cap 1000 each.
+// For simplicity we roll both into a single "mob" with a hard cap per kind.
+const MOB = {
+  base_cap: 25,           // starting cap per kind (friendlier for solo play than LCN's 500)
+  level75_bonus_per: 2,
+  level75_threshold: 75,
+  hard_cap: 1000,
+  hired_gun_cost_fp: 1,   // favor points per hired gun
+  // Each mobster brings 1 weapon + 1 armor + 1 vehicle into fights, gated by player level:
+  active_per_level: 0.5,  // min(mob_size, floor(level * 0.5)) mobsters actively contribute
+  // Flat stat bonus per active mobster in addition to items:
+  flat_atk_per_mobster: 0,
+  flat_def_per_mobster: 0,
+};
+
+const HIRED_GUN_NAMES = [
+  'Little Nicky', 'Three-Finger Louie', 'Fat Tony', 'Bugsy', 'Ricky the Rat',
+  'Ace of Spades', 'Benny the Book', 'Uncle Junior', 'Dominic the Dragon', 'Mario the Mechanic',
+  'The Weasel', 'Philly Joe', 'Crazy Eddie', 'Don the Enforcer', 'Stone-Cold Sammy',
+];
+
 // ---------- NPC NAMES for seed opponents ----------
 const NPC_NAMES = [
   'Sal the Foot', 'Jimmy Two-Times', 'Vinny the Nose', 'Carlo the Hat', 'Tony Eggs',
@@ -112,5 +134,5 @@ function xpForLevel(level) {
 
 module.exports = {
   ITEMS, JOBS, PROPERTIES, NPC_NAMES, REGEN, SKILL_COST, SKILL_POINTS_PER_LEVEL,
-  INCOME_CAP_HOURS, xpForLevel,
+  INCOME_CAP_HOURS, xpForLevel, MOB, HIRED_GUN_NAMES,
 };

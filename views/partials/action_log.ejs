@@ -1,0 +1,13 @@
+<% if (typeof actionLog !== 'undefined' && actionLog && actionLog.length) { %>
+<aside class="action-log">
+  <h3>Recent activity</h3>
+  <ul>
+    <% for (const a of actionLog) { %>
+      <li class="<%= a.good ? 'good' : '' %> kind-<%= a.kind %>">
+        <span class="time"><%= new Date(a.ts * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) %></span>
+        <span class="text"><%= a.text %></span>
+      </li>
+    <% } %>
+  </ul>
+</aside>
+<% } %>

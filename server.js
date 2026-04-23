@@ -126,7 +126,7 @@ app.get('/jobs', loadChar, (req, res) => {
   const c = req.char;
   const mastery = game.getJobMastery(c.id);
   const availableJobs = data.JOBS.map(j => ({ ...j, completions: mastery[j.id] || 0 }));
-  res.render('jobs', { jobs: availableJobs });
+  res.render('jobs', { jobs: availableJobs, actionLog: game.getActionLog(c.id) });
 });
 app.post('/jobs/:id', loadChar, (req, res) => {
   try {
@@ -142,8 +142,8 @@ app.post('/jobs/:id', loadChar, (req, res) => {
 // --- inventory
 app.get('/inventory', loadChar, (req, res) => {
   const inv = game.getInventory(req.char.id);
-  const atk = game.bestLoadout(req.char.id, 'attack');
-  const def = game.bestLoadout(req.char.id, 'defense');
+  const atk = game.bestLoadout(req.char, 'attack');
+  const def = game.bestLoadout(req.char, 'defense');
   res.render('inventory', { inv, atk, def, totalsAtk: game.loadoutTotals(atk), totalsDef: game.loadoutTotals(def) });
 });
 
@@ -167,7 +167,7 @@ app.post('/shop/buy/:id', loadChar, (req, res) => {
 // --- fight
 app.get('/fight', loadChar, (req, res) => {
   const opponents = game.findOpponents(req.char, 25);
-  res.render('fight', { opponents });
+  res.render('fight', { opponents, actionLog: game.getActionLog(req.char.id) });
 });
 app.post('/fight/:id', loadChar, (req, res) => {
   const target = game.getCharacter(parseInt(req.params.id, 10));
@@ -186,7 +186,7 @@ app.post('/fight/:id', loadChar, (req, res) => {
 app.get('/hitlist', loadChar, (req, res) => {
   const hits = game.getOpenHits();
   const myActive = db.prepare('SELECT COUNT(*) AS n FROM hitlist WHERE placer_id = ? AND completed_at IS NULL').get(req.char.id).n;
-  res.render('hitlist', { hits, myActive });
+  res.render('hitlist', { hits, myActive, actionLog: game.getActionLog(req.char.id) });
 });
 app.post('/hitlist/place', loadChar, (req, res) => {
   try {
@@ -213,7 +213,7 @@ app.get('/properties', loadChar, (req, res) => {
   const buyable = data.PROPERTIES.filter(p => !ownedIds.has(p.id));
   const ownedWithNext = owned.map(p => ({ ...p, upgrade_cost: game.propertyUpgradeCost(p, p.level) }));
   const buyableWithCost = buyable.map(p => ({ ...p, upgrade_cost: game.propertyUpgradeCost(p, 0) }));
-  res.render('properties', { owned: ownedWithNext, buyable: buyableWithCost });
+  res.render('properties', { owned: ownedWithNext, buyable: buyableWithCost, actionLog: game.getActionLog(req.char.id) });
 });
 app.post('/properties/buy/:id', loadChar, (req, res) => {
   try {
@@ -235,6 +235,30 @@ app.post('/refill/:which', loadChar, (req, res) => {
     flash(req, `${req.params.which} refilled`, 'good');
   } catch (e) { flash(req, e.message, 'err'); }
   res.redirect(req.get('Referer') || '/hub');
+});
+
+// --- mob
+app.get('/mob', loadChar, (req, res) => {
+  const c = req.char;
+  const members = game.getMob(c.id);
+  const cap = game.mobCap(c.level);
+  const active = game.activeMobSize(c);
+  res.render('mob', { members, cap, active });
+});
+app.post('/mob/hire', loadChar, (req, res) => {
+  try {
+    const qty = Math.max(1, Math.min(5, parseInt(req.body.qty || '1', 10)));
+    for (let i = 0; i < qty; i++) game.hireGun(req.char);
+    flash(req, `Hired ${qty} gun${qty > 1 ? 's' : ''}`, 'good');
+  } catch (e) { flash(req, e.message, 'err'); }
+  res.redirect('/mob');
+});
+app.post('/mob/fire/:slot', loadChar, (req, res) => {
+  try {
+    game.fireMobster(req.char, parseInt(req.params.slot, 10));
+    flash(req, 'Fired mobster', 'info');
+  } catch (e) { flash(req, e.message, 'err'); }
+  res.redirect('/mob');
 });
 
 // --- chat
