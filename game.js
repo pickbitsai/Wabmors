@@ -214,9 +214,15 @@ function topItem(loadout, slot) {
 }
 
 // ---------- MOB / HIRED GUNS ----------
+// TODO(phase2): extend mob to accept real-player invites (kind: 'friend') alongside
+// NPC hired guns. Invite-code flow would issue a code, exchange it for a join.
+// TODO(phase2): expose a `punch(attacker, defender)` that burns 1 stamina, no
+// item scaling, ~1/3 the damage of a full fight. Plug into resolveFight as a
+// `kind` parameter or a separate function; logAction kind: 'punch'.
 function mobCap(level) {
-  const bonus = Math.max(0, level - MOB.level75_threshold) * MOB.level75_bonus_per;
-  return Math.min(MOB.hard_cap, MOB.base_cap + bonus);
+  const early = Math.max(0, Math.min(level - 1, MOB.early_bonus_max)) * MOB.early_bonus_per_level;
+  const late = Math.max(0, level - MOB.level75_threshold) * MOB.level75_bonus_per;
+  return Math.min(MOB.hard_cap, MOB.base_cap + early + late);
 }
 function mobCount(ownerId) {
   return db.prepare('SELECT COUNT(*) AS n FROM mob_members WHERE owner_id = ?').get(ownerId).n;
@@ -626,21 +632,36 @@ function getLiveAmbushes(setterId) {
 }
 
 // ---------- ACHIEVEMENTS ----------
+// Earned in array order — Grand Don is listed last so it can assume every
+// other achievement has already been evaluated this pass.
 function evaluateAchievements(c) {
   const earned = new Set(db.prepare('SELECT achievement_id FROM achievements WHERE character_id = ?').all(c.id).map(r => r.achievement_id));
-  const ctx = {
-    propertyCount: db.prepare('SELECT COUNT(*) AS n FROM properties WHERE character_id = ?').get(c.id).n,
-  };
+  const propertyCount = db.prepare('SELECT COUNT(*) AS n FROM properties WHERE character_id = ?').get(c.id).n;
+  const cityIds = CITIES.map(ci => ci.id);
+  const masteredCityIds = new Set(earnedCityPassives(c.id).map(ci => ci.id));
+  const allCitiesMastered = cityIds.every(id => masteredCityIds.has(id));
   const newlyEarned = [];
   for (const a of ACHIEVEMENTS) {
     if (earned.has(a.id)) continue;
+    // Rebuild ctx per-iteration so grand_don can see achievements earned earlier this pass.
+    const ctx = {
+      propertyCount,
+      allCitiesMastered,
+      allOtherAchievementsEarned: ACHIEVEMENTS
+        .filter(x => x.id !== 'grand_don')
+        .every(x => earned.has(x.id)),
+    };
     try {
       if (a.rule(c, ctx)) {
         db.prepare('INSERT INTO achievements (character_id, achievement_id, earned_at) VALUES (?, ?, ?)').run(c.id, a.id, now());
-        // Apply rewards in-place on `c`
+        earned.add(a.id);
         if (a.reward.cash) c.cash += a.reward.cash;
         if (a.reward.xp) c.xp += a.reward.xp;
         if (a.reward.favor_points) c.favor_points += a.reward.favor_points;
+        if (a.id === 'grand_don') {
+          db.prepare('UPDATE characters SET completed_at = ? WHERE id = ?').run(now(), c.id);
+          c.completed_at = now();
+        }
         newlyEarned.push(a);
       }
     } catch (_) { /* rule error = skip */ }

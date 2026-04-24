@@ -92,11 +92,33 @@ const CITIES = [
     passive: { kind: 'property_discount', value: 0.05, description: '5% discount on property purchases' } },
   { id: 'chicago', name: 'Chicago',       unlock_level: 20,
     passive: { kind: 'income_bonus',      value: 0.05, description: '+5% property income' } },
-  { id: 'vegas',   name: 'Las Vegas',     unlock_level: 40,
+  { id: 'vegas',   name: 'Las Vegas',     unlock_level: 35,
     passive: { kind: 'fight_xp',          value: 0.10, description: '+10% XP from fights' } },
 ];
 
 const CITY_MASTERY_THRESHOLD = 25; // completions of each of a city's tier-5 jobs to earn passive
+
+// ---------- PHASE 2/3 ROADMAP (deferred — DO NOT BUILD YET) ----------
+// The following systems are intentionally not implemented. When picking them
+// up, the plug-in points are marked with `TODO(phase2)` / `TODO(phase3)` in:
+//   - db.js          (schema additions: syndicates, familia, arena_rounds, raid_bosses)
+//   - game.js        (hooks near mob / fight / achievements)
+//   - server.js      (routes: /syndicate, /familia, /arena, /raids, /leaderboards)
+//
+// Phase 2:
+//   - Syndicates (guilds, shared chat, syndicate quests)
+//   - Familia (inner-circle, passive cash share from member income)
+//   - Punches (lightweight 1-stamina attack with no item scaling)
+//   - Real-player mob recruitment (invite codes)
+//
+// Phase 3:
+//   - Syndicate Wars (bi-weekly, divisions, 5-min respawn, decaying kill bonus)
+//   - Battle Arena (L250+, 24h brawl → sudden death)
+//   - Raid Bosses (ranks 0→25+, 2000-action threshold, superior drops)
+//   - Global + social leaderboards, seasonal events
+//
+// Grand Don (the current win condition) intentionally does NOT require any of
+// the above, so the game is beatable with Phase 1 content only.
 
 // ---------- JOBS ----------
 // city: which city the job belongs to.
@@ -113,32 +135,39 @@ const JOBS = [
   { id: 'rig_horse_race',  name: 'Rig a Horse Race',      city: 'nyc', tier: 2, unlock_level: 6,  energy: 8,  cash: [800, 1500],   xp: 16, loot: { chance: 0.07, item: 'beater_sedan' },   salvage: { chance: 0.2, item: 'engine_block' } },
   { id: 'jack_truck',      name: 'Jack a Delivery Truck', city: 'nyc', tier: 2, unlock_level: 8,  energy: 10, cash: [1600, 3200],  xp: 22, loot: { chance: 0.1,  item: 'saturday_special' }, salvage: { chance: 0.2, item: 'gunpowder' } },
   // Tier 3 - organized
-  { id: 'protection_run',  name: 'Run a Protection Racket', city: 'nyc', tier: 3, unlock_level: 12, energy: 14, cash: [5000, 9000],  xp: 38, loot: { chance: 0.1, item: 'bulletproof_vest' } },
-  { id: 'casino_skim',     name: 'Skim the Casino Count',  city: 'nyc', tier: 3, unlock_level: 15, energy: 18, cash: [9000, 18000], xp: 52, loot: { chance: 0.1, item: 'muscle_car' } },
-  { id: 'bank_job',        name: 'Pull a Bank Job',        city: 'nyc', tier: 3, unlock_level: 18, energy: 22, cash: [18000, 40000], xp: 72, loot: { chance: 0.1, item: 'tommy_gun' } },
+  { id: 'protection_run',  name: 'Run a Protection Racket', city: 'nyc', tier: 3, unlock_level: 12, energy: 14, cash: [5000, 9000],  xp: 38, loot: { chance: 0.1, item: 'bulletproof_vest' }, salvage: { chance: 0.18, item: 'armor_plate' } },
+  { id: 'casino_skim',     name: 'Skim the Casino Count',  city: 'nyc', tier: 3, unlock_level: 15, energy: 18, cash: [9000, 18000], xp: 52, loot: { chance: 0.1, item: 'muscle_car' }, salvage: { chance: 0.2, item: 'engine_block' } },
+  { id: 'bank_job',        name: 'Pull a Bank Job',        city: 'nyc', tier: 3, unlock_level: 18, energy: 22, cash: [18000, 40000], xp: 72, loot: { chance: 0.1, item: 'tommy_gun' }, salvage: { chance: 0.2, item: 'gunpowder' } },
   // Tier 4 - made
-  { id: 'hijack_armored',  name: 'Hijack an Armored Car',  city: 'nyc', tier: 4, unlock_level: 25, energy: 28, cash: [50000, 95000], xp: 120, loot: { chance: 0.1, item: 'kevlar_suit' } },
-  { id: 'smuggle_ring',    name: 'Run a Smuggling Ring',   city: 'nyc', tier: 4, unlock_level: 30, energy: 34, cash: [110000, 220000], xp: 180, loot: { chance: 0.1, item: 'black_cadillac' } },
-  { id: 'whack_rival',     name: 'Whack a Rival Capo',     city: 'nyc', tier: 4, unlock_level: 35, energy: 40, cash: [240000, 500000], xp: 280, loot: { chance: 0.1, item: 'sawed_off' } },
+  { id: 'hijack_armored',  name: 'Hijack an Armored Car',  city: 'nyc', tier: 4, unlock_level: 25, energy: 28, cash: [50000, 95000], xp: 120, loot: { chance: 0.1, item: 'kevlar_suit' }, salvage: { chance: 0.15, item: 'armor_plate' } },
+  { id: 'smuggle_ring',    name: 'Run a Smuggling Ring',   city: 'nyc', tier: 4, unlock_level: 30, energy: 34, cash: [110000, 220000], xp: 180, loot: { chance: 0.1, item: 'black_cadillac' }, salvage: { chance: 0.15, item: 'engine_block' } },
+  { id: 'whack_rival',     name: 'Whack a Rival Capo',     city: 'nyc', tier: 4, unlock_level: 35, energy: 40, cash: [240000, 500000], xp: 280, loot: { chance: 0.1, item: 'sawed_off' }, salvage: { chance: 0.15, item: 'gunpowder' } },
   // Tier 5 - don (mastering these earns the city passive)
-  { id: 'take_syndicate',  name: 'Take Over a Syndicate',  city: 'nyc', tier: 5, unlock_level: 45, energy: 50, cash: [600000, 1200000], xp: 450, loot: { chance: 0.08, item: 'pinstripe_mail' } },
-  { id: 'heist_fed',       name: 'Heist the Federal Reserve', city: 'nyc', tier: 5, unlock_level: 55, energy: 65, cash: [1500000, 3000000], xp: 700, loot: { chance: 0.08, item: 'armored_limo' } },
-  { id: 'command_family',  name: 'Command the Five Families', city: 'nyc', tier: 5, unlock_level: 70, energy: 80, cash: [3500000, 7500000], xp: 1100, loot: { chance: 0.05, item: 'gold_plated_45' } },
+  { id: 'take_syndicate',  name: 'Take Over a Syndicate',  city: 'nyc', tier: 5, unlock_level: 45, energy: 50, cash: [600000, 1200000], xp: 450, loot: { chance: 0.08, item: 'pinstripe_mail' }, salvage: { chance: 0.12, item: 'scrap_metal' } },
+  { id: 'heist_fed',       name: 'Heist the Federal Reserve', city: 'nyc', tier: 5, unlock_level: 55, energy: 65, cash: [1500000, 3000000], xp: 700, loot: { chance: 0.08, item: 'armored_limo' }, salvage: { chance: 0.12, item: 'armor_plate' } },
+  // blueprint_stiletto drops here — the hidden recipe's only known source.
+  { id: 'command_family',  name: 'Command the Five Families', city: 'nyc', tier: 5, unlock_level: 70, energy: 80, cash: [3500000, 7500000], xp: 1100, loot: { chance: 0.05, item: 'gold_plated_45' }, salvage: { chance: 0.04, item: 'blueprint_stiletto' } },
 
   // ===== CHICAGO =====
-  { id: 'chi_speakeasy',   name: 'Run a Speakeasy',       city: 'chicago', tier: 1, unlock_level: 20, energy: 12, cash: [8000, 14000],    xp: 42, loot: { chance: 0.1, item: 'bulletproof_vest' } },
-  { id: 'chi_bribe_cops',  name: 'Bribe the Chicago PD',  city: 'chicago', tier: 1, unlock_level: 22, energy: 16, cash: [15000, 28000],   xp: 60, loot: null },
-  { id: 'chi_meatpacking', name: 'Run the Meat-Packing Racket', city: 'chicago', tier: 2, unlock_level: 25, energy: 20, cash: [35000, 60000], xp: 95, loot: { chance: 0.1, item: 'muscle_car' } },
-  { id: 'chi_union_bust',  name: 'Bust a Union',          city: 'chicago', tier: 3, unlock_level: 30, energy: 26, cash: [75000, 140000],  xp: 155, loot: { chance: 0.1, item: 'kevlar_suit' } },
-  { id: 'chi_hit_alderman', name: 'Whack a Crooked Alderman', city: 'chicago', tier: 4, unlock_level: 36, energy: 36, cash: [190000, 340000], xp: 240, loot: { chance: 0.08, item: 'black_cadillac' } },
-  { id: 'chi_own_precinct', name: 'Own an Entire Precinct', city: 'chicago', tier: 5, unlock_level: 44, energy: 48, cash: [500000, 900000], xp: 400, loot: { chance: 0.06, item: 'armored_limo' } },
+  { id: 'chi_speakeasy',   name: 'Run a Speakeasy',       city: 'chicago', tier: 1, unlock_level: 20, energy: 12, cash: [8000, 14000],    xp: 42, loot: { chance: 0.1, item: 'bulletproof_vest' }, salvage: { chance: 0.18, item: 'gunpowder' } },
+  { id: 'chi_bribe_cops',  name: 'Bribe the Chicago PD',  city: 'chicago', tier: 1, unlock_level: 22, energy: 16, cash: [15000, 28000],   xp: 60, loot: null, salvage: { chance: 0.2, item: 'scrap_metal' } },
+  { id: 'chi_meatpacking', name: 'Run the Meat-Packing Racket', city: 'chicago', tier: 2, unlock_level: 25, energy: 20, cash: [35000, 60000], xp: 95, loot: { chance: 0.1, item: 'muscle_car' }, salvage: { chance: 0.2, item: 'engine_block' } },
+  { id: 'chi_union_bust',  name: 'Bust a Union',          city: 'chicago', tier: 3, unlock_level: 30, energy: 26, cash: [75000, 140000],  xp: 155, loot: { chance: 0.1, item: 'kevlar_suit' }, salvage: { chance: 0.18, item: 'armor_plate' } },
+  { id: 'chi_hit_alderman', name: 'Whack a Crooked Alderman', city: 'chicago', tier: 4, unlock_level: 36, energy: 36, cash: [190000, 340000], xp: 240, loot: { chance: 0.08, item: 'black_cadillac' }, salvage: { chance: 0.15, item: 'gunpowder' } },
+  // Three tier-5 jobs (parity with NYC) — otherwise Chicago mastery is 3× faster by accident.
+  { id: 'chi_own_precinct', name: 'Own an Entire Precinct', city: 'chicago', tier: 5, unlock_level: 44, energy: 48, cash: [500000, 900000], xp: 400, loot: { chance: 0.06, item: 'armored_limo' }, salvage: { chance: 0.12, item: 'armor_plate' } },
+  { id: 'chi_run_outfit',   name: 'Run the Chicago Outfit', city: 'chicago', tier: 5, unlock_level: 52, energy: 60, cash: [1100000, 2200000], xp: 620, loot: { chance: 0.06, item: 'pinstripe_mail' }, salvage: { chance: 0.1, item: 'engine_block' } },
+  { id: 'chi_own_city',     name: 'Own the City',           city: 'chicago', tier: 5, unlock_level: 65, energy: 75, cash: [2500000, 4800000], xp: 900, loot: { chance: 0.05, item: 'sawed_off' }, salvage: { chance: 0.08, item: 'gunpowder' } },
 
   // ===== LAS VEGAS =====
-  { id: 'vgs_pit_boss',    name: 'Pay Off a Pit Boss',    city: 'vegas', tier: 1, unlock_level: 40, energy: 30, cash: [250000, 500000], xp: 320, loot: { chance: 0.08, item: 'kevlar_suit' } },
-  { id: 'vgs_card_counter', name: 'Run a Counter Crew',   city: 'vegas', tier: 2, unlock_level: 45, energy: 42, cash: [600000, 1100000], xp: 500, loot: { chance: 0.08, item: 'pinstripe_mail' } },
-  { id: 'vgs_skim_whale',  name: 'Skim a Whale',          city: 'vegas', tier: 3, unlock_level: 52, energy: 58, cash: [1400000, 2800000], xp: 780, loot: { chance: 0.08, item: 'armored_limo' } },
-  { id: 'vgs_bury_desert', name: 'Bury Him in the Desert', city: 'vegas', tier: 4, unlock_level: 60, energy: 72, cash: [3000000, 5500000], xp: 1200, loot: { chance: 0.06, item: 'sawed_off' } },
-  { id: 'vgs_own_strip',   name: 'Own the Strip',         city: 'vegas', tier: 5, unlock_level: 75, energy: 95, cash: [8000000, 16000000], xp: 2000, loot: { chance: 0.05, item: 'bulletproof_rolls' } },
+  // Unlock shifted 40→35 so Vegas T1–T2 land in the player's current combat band rather than being overleveled.
+  { id: 'vgs_vegas_valet',  name: 'Shake Down the Valet',  city: 'vegas', tier: 1, unlock_level: 35, energy: 18, cash: [80000, 180000], xp: 95,  loot: { chance: 0.1, item: 'muscle_car' }, salvage: { chance: 0.2, item: 'scrap_metal' } },
+  { id: 'vgs_pit_boss',    name: 'Pay Off a Pit Boss',     city: 'vegas', tier: 2, unlock_level: 38, energy: 26, cash: [200000, 420000], xp: 220, loot: { chance: 0.08, item: 'kevlar_suit' }, salvage: { chance: 0.18, item: 'armor_plate' } },
+  { id: 'vgs_card_counter', name: 'Run a Counter Crew',    city: 'vegas', tier: 3, unlock_level: 45, energy: 42, cash: [600000, 1100000], xp: 500, loot: { chance: 0.08, item: 'pinstripe_mail' }, salvage: { chance: 0.15, item: 'engine_block' } },
+  // blueprint_stiletto can also rarely drop here — second route so the hidden recipe isn't locked behind a single job.
+  { id: 'vgs_skim_whale',  name: 'Skim a Whale',           city: 'vegas', tier: 3, unlock_level: 52, energy: 58, cash: [1400000, 2800000], xp: 780, loot: { chance: 0.08, item: 'armored_limo' }, salvage: { chance: 0.03, item: 'blueprint_stiletto' } },
+  { id: 'vgs_bury_desert', name: 'Bury Him in the Desert', city: 'vegas', tier: 4, unlock_level: 60, energy: 72, cash: [3000000, 5500000], xp: 1200, loot: { chance: 0.06, item: 'sawed_off' }, salvage: { chance: 0.12, item: 'gunpowder' } },
+  { id: 'vgs_own_strip',   name: 'Own the Strip',          city: 'vegas', tier: 5, unlock_level: 75, energy: 95, cash: [8000000, 16000000], xp: 2000, loot: { chance: 0.05, item: 'bulletproof_rolls' }, salvage: { chance: 0.08, item: 'armor_plate' } },
 ];
 
 // ---------- PROPERTIES ----------
@@ -161,8 +190,13 @@ const INCOME_CAP_HOURS = 24;
 // ---------- MOB CAPS ----------
 // LCN: 500 hired guns + 500 friends at start; after lvl 75 +2/level, hard cap 1000 each.
 // For simplicity we roll both into a single "mob" with a hard cap per kind.
+// Cap shape: L1=5, +1/level up to L21=25, flat until L75, then +2/level to hard cap.
+// Earlier mob growth gives low-level FP something to buy besides refills, without
+// changing late-game economy (cap at L75+ matches the prior formula exactly).
 const MOB = {
-  base_cap: 25,           // starting cap per kind (friendlier for solo play than LCN's 500)
+  base_cap: 5,
+  early_bonus_per_level: 1,  // +1 cap per level 2..21
+  early_bonus_max: 20,       // caps early bonus at L21 (5 + 20 = 25)
   level75_bonus_per: 2,
   level75_threshold: 75,
   hard_cap: 1000,
@@ -200,7 +234,16 @@ const ACHIEVEMENTS = [
   { id: 'level_50',         name: 'Underboss',         desc: 'Reach level 50',                     rule: c => c.level >= 50,       reward: { cash: 250000,  favor_points: 5 } },
   { id: 'level_75',         name: 'Don',               desc: 'Reach level 75',                     rule: c => c.level >= 75,       reward: { cash: 1000000, favor_points: 10 } },
   { id: 'first_property',   name: 'Landlord',          desc: 'Own your first property',            rule: (c, ctx) => ctx.propertyCount >= 1, reward: { cash: 500 } },
+  { id: 'all_properties',   name: 'Empire',            desc: 'Own all 7 properties',               rule: (c, ctx) => ctx.propertyCount >= 7, reward: { cash: 500000, favor_points: 10 } },
   { id: 'millionaire',      name: 'Made a Million',    desc: 'Hold $1,000,000',                    rule: c => c.cash >= 1000000,   reward: { favor_points: 3 } },
+  // --- THE WIN CONDITION ---
+  // Grand Don is the systemic completion state: max-tier level + all 3 cities
+  // mastered + every property owned + every other achievement earned.
+  // Firing this sets characters.completed_at and shows the completion screen.
+  // Must be listed LAST so per-pass evaluation sees all prior achievements.
+  { id: 'grand_don',        name: 'Grand Don',         desc: 'L75 · all cities mastered · all properties owned · every other achievement',
+    rule: (c, ctx) => c.level >= 75 && ctx.allCitiesMastered && ctx.propertyCount >= 7 && ctx.allOtherAchievementsEarned,
+    reward: { cash: 10000000, favor_points: 100 } },
 ];
 
 // ---------- LORE PACKS ----------

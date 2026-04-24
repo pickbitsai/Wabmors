@@ -336,6 +336,13 @@ app.post('/mob/fire/:slot', loadChar, (req, res) => {
   res.redirect('/mob');
 });
 
+// TODO(phase2): /syndicate — guild hub (create, join, member list, shared chat, treasury).
+// TODO(phase2): /familia — inner-circle management (invite, kick, passive cash share).
+// TODO(phase3): /arena — L250+ arena brackets, 24h rounds with sudden death.
+// TODO(phase3): /raids — world-boss contribution and reward payout.
+// TODO(phase3): /leaderboards — global kills / cash / level rankings.
+// These routes are intentionally absent; Grand Don (the current completion state) does not depend on them.
+
 // --- account (user settings: theme, lore, claim)
 app.get('/account', loadChar, (req, res) => {
   res.render('account', { lorePacks: data.LORE });

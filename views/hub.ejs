@@ -1,5 +1,12 @@
 <%- include('partials/head', { title: 'Hub' }) %>
 <%- include('partials/hud') %>
+<% if (char.completed_at) { %>
+<div class="completion-banner">
+  <div class="completion-title">★ GRAND DON ★</div>
+  <div class="completion-sub">You beat the game — L<%= char.level %> · all cities mastered · empire built · every achievement earned.</div>
+  <div class="completion-date">Completed <%= new Date(char.completed_at * 1000).toISOString().slice(0,10) %>. Keep grinding or <a href="/achievements">view the wall</a>.</div>
+</div>
+<% } %>
 <main class="grid two">
   <section class="card">
     <h2>Character</h2>

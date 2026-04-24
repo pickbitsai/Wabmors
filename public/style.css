@@ -422,6 +422,24 @@ input[type=text], input[type=number], input[type=password], input[name] {
   }
 }
 
+/* Grand Don completion banner — shown on the hub once the player beats the game. */
+.completion-banner {
+  margin: 0.8em 1em;
+  padding: 1em 1.2em;
+  border: 2px solid var(--accent);
+  border-radius: 6px;
+  background: linear-gradient(180deg, rgba(199, 162, 74, 0.18) 0%, rgba(142, 17, 17, 0.15) 100%);
+  text-align: center;
+}
+.completion-title {
+  font-size: 1.6em;
+  letter-spacing: 0.3em;
+  color: var(--accent);
+  font-weight: bold;
+}
+.completion-sub { margin-top: 0.4em; color: var(--ink); }
+.completion-date { margin-top: 0.3em; color: var(--muted); font-size: 0.9em; }
+
 /* Phone — tighten everything, touch-friendlier */
 @media (max-width: 600px) {
   main { padding: 0.6em; }

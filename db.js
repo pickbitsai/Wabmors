@@ -51,7 +51,8 @@ CREATE TABLE IF NOT EXISTS characters (
   losses         INTEGER NOT NULL DEFAULT 0,
   jobs_done      INTEGER NOT NULL DEFAULT 0,
 
-  created_at     INTEGER NOT NULL
+  created_at     INTEGER NOT NULL,
+  completed_at   INTEGER            -- set when the Grand Don achievement fires (the win state)
 );
 CREATE INDEX IF NOT EXISTS idx_characters_level ON characters(level);
 
@@ -141,6 +142,16 @@ CREATE TABLE IF NOT EXISTS mob_members (
 );
 CREATE INDEX IF NOT EXISTS idx_mob_owner ON mob_members(owner_id);
 
+-- TODO(phase2): syndicates — guilds with shared chat and weekly quests.
+--   CREATE TABLE syndicates (id, name, tag, created_at, leader_id, treasury);
+--   CREATE TABLE syndicate_members (syndicate_id, character_id, role, joined_at);
+-- TODO(phase2): familia — inner-circle, passive income share from member properties.
+--   CREATE TABLE familia_members (boss_id, member_id, share_bps, joined_at);
+-- TODO(phase3): arena — L250+ 24h brawls with sudden-death overtime.
+--   CREATE TABLE arena_rounds (id, opens_at, closes_at, winner_id);
+-- TODO(phase3): raid_bosses — world bosses with contribution-based drops.
+--   CREATE TABLE raid_bosses (id, rank, hp_max, spawned_at, killed_at);
+
 CREATE TABLE IF NOT EXISTS action_log (
   id           INTEGER PRIMARY KEY AUTOINCREMENT,
   character_id INTEGER NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
@@ -152,8 +163,9 @@ CREATE TABLE IF NOT EXISTS action_log (
 CREATE INDEX IF NOT EXISTS idx_log_char ON action_log(character_id, id);
 `);
 
-// Best-effort migration for pre-existing DBs that were created before is_guest existed.
-// If the column is already there, SQLite throws — caught & swallowed.
+// Best-effort migrations for pre-existing DBs. If a column is already there,
+// SQLite throws — caught & swallowed.
 try { db.exec('ALTER TABLE users ADD COLUMN is_guest INTEGER NOT NULL DEFAULT 0'); } catch (_) {}
+try { db.exec('ALTER TABLE characters ADD COLUMN completed_at INTEGER'); } catch (_) {}
 
 module.exports = db;

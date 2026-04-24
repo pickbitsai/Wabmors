@@ -12,7 +12,9 @@
   "scripts": {
     "start": "node server.js",
     "seed": "node seed.js",
-    "test": "node tests/run.js"
+    "test": "node tests/run.js",
+    "test:speedrun": "node tests/speedrun.js",
+    "test:ttb": "node tests/ttb.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
