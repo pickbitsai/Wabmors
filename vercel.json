@@ -3,10 +3,17 @@
   "functions": {
     "api/index.js": {
       "maxDuration": 10
+    },
+    "api/leaderboard-tick.js": {
+      "maxDuration": 30
     }
   },
   "rewrites": [
     { "source": "/style.css", "destination": "/style.css" },
+    { "source": "/api/leaderboard-tick", "destination": "/api/leaderboard-tick" },
     { "source": "/(.*)", "destination": "/api/index" }
+  ],
+  "crons": [
+    { "path": "/api/leaderboard-tick", "schedule": "0 9 * * *" }
   ]
 }

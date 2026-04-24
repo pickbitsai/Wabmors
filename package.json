@@ -14,9 +14,11 @@
     "seed": "node seed.js",
     "test": "node tests/run.js",
     "test:speedrun": "node tests/speedrun.js",
-    "test:ttb": "node tests/ttb.js"
+    "test:ttb": "node tests/ttb.js",
+    "test:leaderboard": "node tests/leaderboard.js"
   },
   "dependencies": {
+    "@vercel/blob": "^2.3.3",
     "bcryptjs": "^2.4.3",
     "better-sqlite3": "^11.3.0",
     "cookie-session": "^2.1.1",
