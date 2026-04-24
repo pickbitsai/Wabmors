@@ -1,10 +1,24 @@
 const express = require('express');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
+const fs = require('fs');
 const path = require('path');
 const db = require('./db');
 const game = require('./game');
 const data = require('./data');
+
+// Cache-busting version for /style.css — derived from the file's mtime at
+// boot (dev) or a deploy-time constant (Vercel injects VERCEL_GIT_COMMIT_SHA).
+// When the file changes, the querystring changes, so browsers can't serve
+// stale CSS after a theme refactor.
+function computeAssetVersion() {
+  if (process.env.VERCEL_GIT_COMMIT_SHA) return process.env.VERCEL_GIT_COMMIT_SHA.slice(0, 8);
+  try {
+    const stat = fs.statSync(path.join(__dirname, 'public', 'style.css'));
+    return String(Math.floor(stat.mtimeMs));
+  } catch (_) { return String(Date.now()); }
+}
+const ASSET_VERSION = computeAssetVersion();
 
 const app = express();
 const PORT = process.env.PORT || 3456;
@@ -37,6 +51,7 @@ app.use((req, res, next) => {
     (data.LORE[lore] && data.LORE[lore].city_names && data.LORE[lore].city_names[cityDef.id])
     || cityDef.name;
   res.locals.loreTagline = (data.LORE[lore] && data.LORE[lore].brand_tagline) || '';
+  res.locals.assetVersion = ASSET_VERSION;
   next();
 });
 

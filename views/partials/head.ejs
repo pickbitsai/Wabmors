@@ -4,6 +4,6 @@
   <meta charset="utf-8">
   <title>Wabmors — <%= title %></title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/style.css?v=<%= typeof assetVersion !== 'undefined' ? assetVersion : Date.now() %>">
 </head>
 <body class="theme-<%= (typeof theme !== 'undefined' && theme) ? theme : 'mafia' %>">
