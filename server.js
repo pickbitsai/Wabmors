@@ -23,6 +23,11 @@ const ASSET_VERSION = computeAssetVersion();
 const app = express();
 const PORT = process.env.PORT || 3456;
 
+// Trust the first proxy hop — required on Vercel so Express sees the real
+// HTTPS protocol and client IP. Without this, cookie-session `secure: true`
+// won't write Set-Cookie because Express thinks the connection is plain HTTP.
+app.set('trust proxy', 1);
+
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: false }));
